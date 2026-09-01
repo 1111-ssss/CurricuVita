@@ -2,7 +2,7 @@ using Infrastructure.Database.DependencyInjection;
 
 namespace Web.Extensions;
 
-public static class DatabaseConfigurationExtension
+public static class DatabaseConfigurationExtensions
 {
     public static IServiceCollection AddDatabaseConfiguration(this IServiceCollection services, IConfiguration configuration)
     {

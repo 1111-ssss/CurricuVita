@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Web.Extensions;
 
-public static class ApplicationConfigurationExtension
+public static class ApplicationConfigurationExtensions
 {
     public static async Task<WebApplication> AddApplicationConfiguration(this WebApplication app)
     {
