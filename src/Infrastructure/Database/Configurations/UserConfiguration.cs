@@ -12,6 +12,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.LastName).HasMaxLength(100).IsRequired();
         builder.Property(u => u.Location).HasMaxLength(200);
         builder.Property(u => u.AvatarUrl).HasMaxLength(500);
+        builder.Property(u => u.Email).HasMaxLength(100).IsRequired();
 
         builder.Property(u => u.Version)
             .IsConcurrencyToken();
