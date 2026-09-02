@@ -1,3 +1,7 @@
+using Application;
+using Infrastructure.Interfaces;
+using Infrastructure.Services;
+
 namespace Web.Extensions;
 
 public static class ServiceConfigurationExtensions
@@ -6,7 +10,15 @@ public static class ServiceConfigurationExtensions
     {
         services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        // Infrastructure services
+        services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
         
+        // MediatR
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly)
+        );
+
         return services;
     }
 }
