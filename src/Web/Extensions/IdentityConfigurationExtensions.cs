@@ -1,5 +1,7 @@
+using Domain.Interfaces.Identity;
 using Infrastructure.Database;
 using Infrastructure.Database.Entities;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 
 namespace Web.Extensions;
@@ -27,6 +29,8 @@ public static class IdentityConfigurationExtensions
                 options.ClientSecret = configuration["Authentication:GitHub:ClientSecret"]!;
                 options.Scope.Add("user:email");
             });
+
+        services.AddScoped<IIdentityService, IdentityService>();
 
         return services;
     }
