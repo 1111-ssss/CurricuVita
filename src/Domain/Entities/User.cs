@@ -1,18 +1,18 @@
 using Domain.Interfaces.Database;
+using Microsoft.AspNetCore.Identity;
 
 namespace Domain.Entities;
 
-public class User : IEntity
+public class User : IdentityUser<int>, IEntity
 {
-    public int Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int Version { get; set; }
     public string? AvatarUrl { get; set; }
+    public string? AvatarPublicId { get; set; }
 
     public ICollection<UserBadge> Badges { get; set; } = new List<UserBadge>();
     public ICollection<UserAttributeValue> AttributeValues { get; set; } = new List<UserAttributeValue>();
