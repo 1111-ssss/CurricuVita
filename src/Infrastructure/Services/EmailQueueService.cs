@@ -1,6 +1,6 @@
 using System.Threading.Channels;
 using Domain.Contracts;
-using Infrastructure.Interfaces;
+using Domain.Interfaces.Services;
 using Infrastructure.Constants;
 
 namespace Infrastructure.Services;

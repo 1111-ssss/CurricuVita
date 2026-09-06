@@ -2,6 +2,7 @@ using Application;
 using Domain.Interfaces.Services;
 using Domain.Options;
 using FluentEmail.MailKitSmtp;
+using Infrastructure.Interfaces;
 using Infrastructure.Services;
 using Web.BackgroundServices;
 
@@ -33,6 +34,7 @@ public static class ServiceConfigurationExtensions
 
         // Services
         services.AddScoped<IEmailSenderService, EmailSenderService>();
+        services.AddSingleton<IEmailQueueService, EmailQueueService>();
 
         // Background Services
         services.AddHostedService<EmailBackgroundService>();
