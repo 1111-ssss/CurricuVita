@@ -1,98 +1,103 @@
 using Domain.Entities;
 using Domain.Interfaces.Identity;
-using Infrastructure.Database.Entities;
 using Microsoft.AspNetCore.Identity;
 using Domain.ResultPattern.Result;
 using Domain.ResultPattern.Errors;
-using Ardalis.Specification;
+using Infrastructure.Constants;
 
 namespace Infrastructure.Services;
 
 public class IdentityService : IIdentityService
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly IRepositoryBase<User> _userRepository;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
 
     public IdentityService(
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
-        IRepositoryBase<User> userRepository
+        UserManager<User> userManager,
+        SignInManager<User> signInManager
     )
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _userRepository = userRepository;
     }
 
-    public async Task<Result<int>> ExternalLoginAsync(
+    public async Task<Result> ExternalLogin(
         string provider,
         string providerKey,
         string email,
-        string? firstName,
-        string? lastName,
-        string? password,
+        string? firstName = null,
+        string? lastName = null,
         CancellationToken cancellationToken = default
     )
     {
-        var info = new UserLoginInfo(provider, providerKey, provider);
-        var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+        var loginInfo = new UserLoginInfo(provider, providerKey, provider);
 
+        var user = await _userManager.FindByLoginAsync(loginInfo.LoginProvider, loginInfo.ProviderKey);
         if (user is not null)
         {
-            await _signInManager.SignInAsync(user, isPersistent: false);
-            return Result<int>.Success(user.Id);
+            UpdateUserProfile(user, firstName, lastName);
+            await _userManager.UpdateAsync(user);
+
+            await _signInManager.SignInAsync(user, isPersistent: IdentityServiceConstants.ExternalLoginIsPersistent);
+            return Result.Success();
         }
 
         user = await _userManager.FindByEmailAsync(email);
 
         if (user is null)
         {
-            if (firstName is null || lastName is null || password is null)
+            user = new User
             {
-                return Result.Failure(Errors.ExternalLoginError);
-            }
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true,
+                FirstName = firstName ?? string.Empty,
+                LastName = lastName ?? string.Empty,
+                Location = string.Empty,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Version = 1
+            };
 
-            return await RegisterUserAsync(email, firstName, lastName, password, cancellationToken);
+            var createResult = await _userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+            {
+                return Result.Failure(Errors.ExternalLoginError with { Message = GetErrorsText(createResult) });
+            }
+        }
+        else
+        {
+            UpdateUserProfile(user, firstName, lastName);
+            await _userManager.UpdateAsync(user);
         }
 
-        var addLoginResult = await _userManager.AddLoginAsync(user, info);
+        var addLoginResult = await _userManager.AddLoginAsync(user, loginInfo);
         if (!addLoginResult.Succeeded)
         {
-            return Result.Failure(
-                Errors.ExternalLoginError with {
-                    Message = string.Join(", ", addLoginResult.Errors.Select(e => e.Description))
-                }
-            );
+            return Result.Failure(Errors.ExternalLoginError with { Message = GetErrorsText(addLoginResult) });
         }
 
-        await _signInManager.SignInAsync(user, isPersistent: false);
-        return Result<int>.Success(user.Id);
+        await _signInManager.SignInAsync(user, isPersistent: true);
+        return Result.Success();
     }
 
-    public async Task<bool> IsEmailConfirmedAsync(int userId)
+    public async Task<bool> IsEmailConfirmed(int userId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         return user?.EmailConfirmed ?? false;
     }
 
-    public async Task<User?> GetUserByEmailAsync(string email)
+    public async Task<User?> GetUserByEmail(string email)
     {
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user is null)
-        {
-            return null;
-        }
-
-        return await _userRepository.GetByIdAsync(user.Id);
+        return await _userManager.FindByEmailAsync(email);
     }
 
-    public async Task<User?> GetUserByIdAsync(int userId)
+    public async Task<User?> GetUserById(int userId)
     {
-        return await _userRepository.GetByIdAsync(userId);
+        return await _userManager.FindByIdAsync(userId.ToString());
     }
 
-    public async Task<Result<int>> RegisterUserAsync(
+    public async Task<Result> RegisterUser(
         string email,
         string firstName,
         string lastName,
@@ -100,39 +105,103 @@ public class IdentityService : IIdentityService
         CancellationToken cancellationToken = default
     )
     {
-        var applicationUser = new ApplicationUser
+        var user = new User
         {
             UserName = email,
             Email = email,
-            EmailConfirmed = false
-        };
-
-        var passwordHash = _userManager.PasswordHasher.HashPassword(applicationUser, password);
-        applicationUser.PasswordHash = passwordHash;
-
-        var createResult = await _userManager.CreateAsync(applicationUser);
-        if (!createResult.Succeeded)
-        {
-            return Result.Failure(
-                Errors.ExternalLoginError with {
-                    Message = string.Join(", ", createResult.Errors.Select(e => e.Description))
-                }
-            );
-        }
-
-        var domainUser = new User
-        {
-            Email = email,
+            EmailConfirmed = false,
             FirstName = firstName,
             LastName = lastName,
+            Location = string.Empty,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             Version = 1
         };
 
-        await _userRepository.AddAsync(domainUser);
-        await _userRepository.SaveChangesAsync();
+        var createResult = await _userManager.CreateAsync(user, password);
+        if (!createResult.Succeeded)
+        {
+            return Result.Failure(Errors.ExternalLoginError with { Message = GetErrorsText(createResult) });
+        }
 
-        return Result<int>.Success(domainUser.Id);
+        return Result.Success();
+    }
+
+    public async Task<Result> Login(
+        string email,
+        string password,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user is null)
+        {
+            return Result.Failure(Errors.InvalidCredentials);
+        }
+
+        if (!user.EmailConfirmed)
+        {
+            return Result.Failure(Errors.EmailNotConfirmed);
+        }
+
+        var result = await _signInManager.PasswordSignInAsync(
+            user,
+            password,
+            isPersistent: true,
+            lockoutOnFailure: true
+        );
+
+        if (result.Succeeded)
+        {
+            return Result.Success();
+        }
+
+        if (result.IsLockedOut)
+        {
+            return Result.Failure(Errors.UserLockedOut);
+        }
+
+        if (result.IsNotAllowed)
+        {
+            return Result.Failure(Errors.LoginNotAllowed);
+        }
+
+        return Result.Failure(Errors.InvalidCredentials);
+    }
+
+    public async Task Logout()
+    {
+        await _signInManager.SignOutAsync();
+    }
+
+    public async Task<IList<string>> GetRoles(int userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return new List<string>();
+        }
+
+        return await _userManager.GetRolesAsync(user);
+    }
+
+    private static void UpdateUserProfile(User user, string? firstName, string? lastName)
+    {
+        if (!string.IsNullOrWhiteSpace(firstName))
+        {
+            user.FirstName = firstName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(lastName))
+        {
+            user.LastName = lastName;
+        }
+
+        user.UpdatedAt = DateTime.UtcNow;
+    }
+
+    private string GetErrorsText(IdentityResult result)
+    {
+        return string.Join(", ", result.Errors.Select(e => e.Description));
     }
 }
