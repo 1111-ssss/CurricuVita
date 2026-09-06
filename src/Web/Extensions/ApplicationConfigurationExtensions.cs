@@ -16,9 +16,10 @@ public static class ApplicationConfigurationExtensions
             if (app.Environment.IsDevelopment())
             {
                 var dbSeeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+                await dbSeeder.SeedRoles(scope.ServiceProvider);
                 await dbSeeder.SeedDatabase();
             }
-        }
+        }        
 
         return app;
     }
