@@ -1,6 +1,8 @@
 using Infrastructure.Database.DependencyInjection;
 using Ardalis.Specification.EntityFrameworkCore;
 using Ardalis.Specification;
+using Infrastructure.Interfaces;
+using Infrastructure.Services;
 
 namespace Web.Extensions;
 
@@ -11,6 +13,8 @@ public static class DatabaseConfigurationExtensions
         services.ConfigureDbContext(configuration);
 
         services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
+
+        services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
 
         return services;
     }
