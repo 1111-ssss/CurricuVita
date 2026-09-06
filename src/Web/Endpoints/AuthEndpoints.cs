@@ -39,7 +39,7 @@ public static class AuthEndpoints
     {
         await mediator.Send(request, cancellationToken);
 
-        return Results.Ok();
+        return Results.Unauthorized();
     }
 
     private static async Task<IResult> Register(
