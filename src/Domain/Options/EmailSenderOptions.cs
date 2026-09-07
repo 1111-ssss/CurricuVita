@@ -8,4 +8,5 @@ public class EmailSenderOptions
     public int SmtpPort { get; set; }
     public string From { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    public TimeSpan TokenLifetime { get; set; } = TimeSpan.FromMinutes(10);
 }
