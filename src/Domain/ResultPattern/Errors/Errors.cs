@@ -12,5 +12,7 @@ public static class Errors
     public static Error LoginNotAllowed = new(HttpStatusCode.BadRequest, "LoginNotAllowed", "Login not allowed.");
     public static Error Unauthorized = new(HttpStatusCode.Unauthorized, "Unauthorized", "Unauthorized.");
     public static Error NotFound = new(HttpStatusCode.NotFound, "NotFound", "Not found.");
+    public static Error UserNotFound = new(HttpStatusCode.NotFound, "UserNotFound", "User not found.");
     public static Error AvatarUploadError = new(HttpStatusCode.BadRequest, "AvatarUploadError", "Avatar upload error.");
+    public static Error EmailConfirmationTokenAlreadySent = new(HttpStatusCode.BadRequest, "EmailConfirmationTokenAlreadySent", "Email confirmation token already sent.");
 }
