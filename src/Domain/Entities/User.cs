@@ -13,6 +13,7 @@ public class User : IdentityUser<int>, IEntity
     public int Version { get; set; }
     public string? AvatarUrl { get; set; }
     public string? AvatarPublicId { get; set; }
+    public DateTime? EmailConfirmationTokenSentAt { get; set; }
 
     public ICollection<UserBadge> Badges { get; set; } = new List<UserBadge>();
     public ICollection<UserAttributeValue> AttributeValues { get; set; } = new List<UserAttributeValue>();
