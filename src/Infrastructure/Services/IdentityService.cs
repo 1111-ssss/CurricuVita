@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using Domain.ResultPattern.Result;
 using Domain.ResultPattern.Errors;
 using Infrastructure.Constants;
+using Microsoft.Extensions.Options;
+using Domain.Options;
 
 namespace Infrastructure.Services;
 
@@ -11,14 +13,17 @@ public class IdentityService : IIdentityService
 {
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
+    private readonly EmailSenderOptions _options;
 
     public IdentityService(
         UserManager<User> userManager,
-        SignInManager<User> signInManager
+        SignInManager<User> signInManager,
+        IOptions<EmailSenderOptions> options
     )
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _options = options.Value;
     }
 
     public async Task<Result> ExternalLogin(
@@ -97,7 +102,7 @@ public class IdentityService : IIdentityService
         return await _userManager.FindByIdAsync(userId.ToString());
     }
 
-    public async Task<Result> RegisterUser(
+    public async Task<Result<int>> RegisterUser(
         string email,
         string firstName,
         string lastName,
@@ -124,10 +129,10 @@ public class IdentityService : IIdentityService
             return Result.Failure(Errors.ExternalLoginError with { Message = GetErrorsText(createResult) });
         }
 
-        return Result.Success();
+        return Result<int>.Success(user.Id);
     }
 
-    public async Task<Result> Login(
+    public async Task<Result<int>> Login(
         string email,
         string password,
         CancellationToken cancellationToken = default
@@ -153,7 +158,7 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
-            return Result.Success();
+            return Result<int>.Success(user.Id);
         }
 
         if (result.IsLockedOut)
@@ -183,6 +188,38 @@ public class IdentityService : IIdentityService
         }
 
         return await _userManager.GetRolesAsync(user);
+    }
+
+    public async Task<Result<string>> GenerateEmailConfirmationToken(int userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(Errors.UserNotFound);
+        }
+        if (user.EmailConfirmationTokenSentAt is not null
+            && DateTime.UtcNow - user.EmailConfirmationTokenSentAt.Value < _options.TokenLifetime)
+        {
+            return Result.Failure(Errors.EmailConfirmationTokenAlreadySent);
+        }
+
+        user.EmailConfirmationTokenSentAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        return Result<string>.Success(token);
+    }
+
+    public async Task<Result> ConfirmEmail(int userId, string token)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(Errors.UserNotFound);
+        }
+
+        await _userManager.ConfirmEmailAsync(user, token);
+        return Result.Success();
     }
 
     private static void UpdateUserProfile(User user, string? firstName, string? lastName)
