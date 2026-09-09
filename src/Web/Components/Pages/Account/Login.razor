@@ -1,0 +1,99 @@
+@page "/account/login"
+
+@using MediatR
+@using System.ComponentModel.DataAnnotations
+@using Application.Features.Identity.Login
+
+@inject ISender Sender
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Login_Title"]</PageTitle>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h3 class="mb-4 text-center">@T["Login_Heading"]</h3>
+
+                <EditForm Model="model" OnValidSubmit="HandleLogin">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger mb-3" />
+
+                    <div class="mb-3">
+                        <label class="form-label">@T["Login_Email"]</label>
+                        <InputText @bind-Value="model.Email" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">@T["Login_Password"]</label>
+                        <InputText type="password" @bind-Value="model.Password" class="form-control" />
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                            @if (isLoading) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                            @T["Login_Submit"]
+                        </button>
+                    </div>
+                </EditForm>
+
+                <div class="text-center mt-3">
+                    <a href="/account/register">@T["Login_RegisterLink"]</a>
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger mt-3">@errorMessage</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel model = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await Sender.Send(new LoginUserRequest(
+                Email: model.Email,
+                Password: model.Password
+            ));
+
+            if (result.IsSuccess)
+            {
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Login_Failed"]);
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = T["Login_Unexpected"];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
+        [EmailAddress(ErrorMessageResourceName = nameof(SharedResource.Validation_Email), ErrorMessageResourceType = typeof(SharedResource))]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
+        public string Password { get; set; } = "";
+    }
+}

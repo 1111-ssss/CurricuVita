@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="App_Name" xml:space="preserve"><value>CurricuVita</value></data>
+  <data name="Nav_Home" xml:space="preserve"><value>Главная</value></data>
+  <data name="Nav_SignIn" xml:space="preserve"><value>Войти</value></data>
+  <data name="Nav_SignUp" xml:space="preserve"><value>Регистрация</value></data>
+  <data name="Nav_Toggle" xml:space="preserve"><value>Открыть меню</value></data>
+  <data name="Culture_Label" xml:space="preserve"><value>Язык</value></data>
+  <data name="Culture_English" xml:space="preserve"><value>English</value></data>
+  <data name="Culture_Russian" xml:space="preserve"><value>Русский</value></data>
+  <data name="Theme_Label" xml:space="preserve"><value>Тема</value></data>
+  <data name="Theme_Mode" xml:space="preserve"><value>Оформление</value></data>
+  <data name="Theme_Light" xml:space="preserve"><value>Светлая</value></data>
+  <data name="Theme_Dark" xml:space="preserve"><value>Тёмная</value></data>
+  <data name="Theme_Auto" xml:space="preserve"><value>Системная</value></data>
+  <data name="Theme_Accent" xml:space="preserve"><value>Цвет</value></data>
+  <data name="Theme_Accent_Blue" xml:space="preserve"><value>Синий</value></data>
+  <data name="Theme_Accent_Indigo" xml:space="preserve"><value>Индиго</value></data>
+  <data name="Theme_Accent_Teal" xml:space="preserve"><value>Бирюзовый</value></data>
+  <data name="Theme_Accent_Rose" xml:space="preserve"><value>Розовый</value></data>
+  <data name="Theme_Accent_Amber" xml:space="preserve"><value>Янтарный</value></data>
+  <data name="ErrorUi_Unhandled" xml:space="preserve"><value>Произошла непредвиденная ошибка.</value></data>
+  <data name="ErrorUi_Reload" xml:space="preserve"><value>Обновить</value></data>
+  <data name="ErrorUi_Dismiss" xml:space="preserve"><value>Закрыть</value></data>
+  <data name="Reconnect_First" xml:space="preserve"><value>Повторное подключение к серверу...</value></data>
+  <data name="Reconnect_RetryBefore" xml:space="preserve"><value>Не удалось подключиться... повтор через</value></data>
+  <data name="Reconnect_RetryAfter" xml:space="preserve"><value>с.</value></data>
+  <data name="Reconnect_Failed" xml:space="preserve"><value>Не удалось восстановить соединение. Повторите попытку или обновите страницу.</value></data>
+  <data name="Reconnect_RetryButton" xml:space="preserve"><value>Повторить</value></data>
+  <data name="Reconnect_Paused" xml:space="preserve"><value>Сессия приостановлена сервером.</value></data>
+  <data name="Reconnect_ResumeFailed" xml:space="preserve"><value>Не удалось возобновить сессию. Повторите попытку или обновите страницу.</value></data>
+  <data name="Reconnect_Resume" xml:space="preserve"><value>Продолжить</value></data>
+  <data name="Home_Title" xml:space="preserve"><value>Главная</value></data>
+  <data name="Home_Heading" xml:space="preserve"><value>Добро пожаловать в CurricuVita</value></data>
+  <data name="Home_Lead" xml:space="preserve"><value>Создавайте и делитесь профессиональным профилем.</value></data>
+  <data name="Login_Title" xml:space="preserve"><value>Вход</value></data>
+  <data name="Login_Heading" xml:space="preserve"><value>Вход</value></data>
+  <data name="Login_Email" xml:space="preserve"><value>Электронная почта</value></data>
+  <data name="Login_Password" xml:space="preserve"><value>Пароль</value></data>
+  <data name="Login_Submit" xml:space="preserve"><value>Войти</value></data>
+  <data name="Login_RegisterLink" xml:space="preserve"><value>Создать аккаунт</value></data>
+  <data name="Login_Failed" xml:space="preserve"><value>Не удалось войти.</value></data>
+  <data name="Login_Unexpected" xml:space="preserve"><value>Что-то пошло не так. Попробуйте ещё раз.</value></data>
+  <data name="Register_Title" xml:space="preserve"><value>Регистрация</value></data>
+  <data name="Register_Heading" xml:space="preserve"><value>Регистрация</value></data>
+  <data name="Register_FirstName" xml:space="preserve"><value>Имя</value></data>
+  <data name="Register_LastName" xml:space="preserve"><value>Фамилия</value></data>
+  <data name="Register_Location" xml:space="preserve"><value>Местоположение</value></data>
+  <data name="Register_Email" xml:space="preserve"><value>Электронная почта</value></data>
+  <data name="Register_Password" xml:space="preserve"><value>Пароль</value></data>
+  <data name="Register_Submit" xml:space="preserve"><value>Зарегистрироваться</value></data>
+  <data name="Register_LoginLink" xml:space="preserve"><value>Уже есть аккаунт? Войти</value></data>
+  <data name="Register_Failed" xml:space="preserve"><value>Не удалось зарегистрироваться.</value></data>
+  <data name="Register_Unexpected" xml:space="preserve"><value>Что-то пошло не так. Попробуйте ещё раз.</value></data>
+  <data name="Validation_Required" xml:space="preserve"><value>Обязательное поле.</value></data>
+  <data name="Validation_Email" xml:space="preserve"><value>Введите корректный адрес электронной почты.</value></data>
+  <data name="Error_Title" xml:space="preserve"><value>Ошибка</value></data>
+  <data name="Error_Heading" xml:space="preserve"><value>Ошибка.</value></data>
+  <data name="Error_Subheading" xml:space="preserve"><value>При обработке запроса произошла ошибка.</value></data>
+  <data name="Error_RequestId" xml:space="preserve"><value>Идентификатор запроса:</value></data>
+  <data name="Error_DevHeading" xml:space="preserve"><value>Режим разработки</value></data>
+  <data name="Error_DevSwap" xml:space="preserve"><value>В среде Development отображаются подробности произошедшей ошибки.</value></data>
+  <data name="Error_DevWarning" xml:space="preserve"><value>Среду Development не следует включать в развёрнутом приложении — это может раскрыть чувствительные данные пользователям.</value></data>
+  <data name="Error_DevHow" xml:space="preserve"><value>Для локальной отладки задайте переменную среды ASPNETCORE_ENVIRONMENT=Development и перезапустите приложение.</value></data>
+  <data name="NotFound_Title" xml:space="preserve"><value>Страница не найдена</value></data>
+  <data name="NotFound_Heading" xml:space="preserve"><value>Страница не найдена</value></data>
+  <data name="NotFound_Message" xml:space="preserve"><value>Нужная страница не найдена.</value></data>
+  <data name="Errors_ExternalLoginError" xml:space="preserve"><value>Ошибка внешнего входа.</value></data>
+  <data name="Errors_InvalidCredentials" xml:space="preserve"><value>Неверный email или пароль.</value></data>
+  <data name="Errors_EmailNotConfirmed" xml:space="preserve"><value>Подтвердите email, прежде чем войти.</value></data>
+  <data name="Errors_UserLockedOut" xml:space="preserve"><value>Аккаунт заблокирован. Попробуйте позже.</value></data>
+  <data name="Errors_LoginNotAllowed" xml:space="preserve"><value>Вход для этого аккаунта запрещён.</value></data>
+  <data name="Errors_Unauthorized" xml:space="preserve"><value>Недостаточно прав для этого действия.</value></data>
+  <data name="Errors_NotFound" xml:space="preserve"><value>Запрашиваемый ресурс не найден.</value></data>
+  <data name="Errors_UserNotFound" xml:space="preserve"><value>Пользователь не найден.</value></data>
+  <data name="Errors_AvatarUploadError" xml:space="preserve"><value>Не удалось загрузить аватар.</value></data>
+  <data name="Errors_EmailConfirmationTokenAlreadySent" xml:space="preserve"><value>Письмо с подтверждением уже отправлено.</value></data>
+</root>

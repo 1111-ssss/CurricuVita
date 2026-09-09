@@ -1,0 +1,61 @@
+@inject UiPreferencesState Preferences
+@inject IJSRuntime JS
+@inject IStringLocalizer<SharedResource> T
+
+<div class="dropdown">
+    <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+            type="button"
+            aria-expanded="@open"
+            aria-label="@T["Theme_Label"]"
+            @onclick="Toggle">
+        @T["Theme_Label"]
+    </button>
+    @if (open)
+    {
+        <div class="dropdown-menu dropdown-menu-end show p-2 theme-menu">
+            <div class="px-2 pb-1 text-body-secondary small">@T["Theme_Mode"]</div>
+            <button type="button" class="dropdown-item @(IsMode("light") ? "active" : null)" @onclick='() => SetMode("light")'>
+                @T["Theme_Light"]
+            </button>
+            <button type="button" class="dropdown-item @(IsMode("dark") ? "active" : null)" @onclick='() => SetMode("dark")'>
+                @T["Theme_Dark"]
+            </button>
+            <button type="button" class="dropdown-item @(IsMode("auto") ? "active" : null)" @onclick='() => SetMode("auto")'>
+                @T["Theme_Auto"]
+            </button>
+            <hr class="dropdown-divider" />
+            <div class="px-2 pb-2 text-body-secondary small">@T["Theme_Accent"]</div>
+            <div class="d-flex gap-2 px-2 pb-1">
+                <button type="button" class="theme-swatch @(IsAccent("blue") ? "active" : null)" style="--swatch: #0d6efd" title="@T["Theme_Accent_Blue"]" aria-label="@T["Theme_Accent_Blue"]" @onclick='() => SetAccent("blue")'></button>
+                <button type="button" class="theme-swatch @(IsAccent("indigo") ? "active" : null)" style="--swatch: #6610f2" title="@T["Theme_Accent_Indigo"]" aria-label="@T["Theme_Accent_Indigo"]" @onclick='() => SetAccent("indigo")'></button>
+                <button type="button" class="theme-swatch @(IsAccent("teal") ? "active" : null)" style="--swatch: #0d9488" title="@T["Theme_Accent_Teal"]" aria-label="@T["Theme_Accent_Teal"]" @onclick='() => SetAccent("teal")'></button>
+                <button type="button" class="theme-swatch @(IsAccent("rose") ? "active" : null)" style="--swatch: #e11d48" title="@T["Theme_Accent_Rose"]" aria-label="@T["Theme_Accent_Rose"]" @onclick='() => SetAccent("rose")'></button>
+                <button type="button" class="theme-swatch @(IsAccent("amber") ? "active" : null)" style="--swatch: #d97706" title="@T["Theme_Accent_Amber"]" aria-label="@T["Theme_Accent_Amber"]" @onclick='() => SetAccent("amber")'></button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool open;
+
+    private void Toggle() => open = !open;
+
+    private bool IsMode(string mode) =>
+        string.Equals(Preferences.ThemeMode, mode, StringComparison.OrdinalIgnoreCase);
+
+    private bool IsAccent(string accent) =>
+        string.Equals(Preferences.Accent, accent, StringComparison.OrdinalIgnoreCase);
+
+    private async Task SetMode(string mode)
+    {
+        await Preferences.SetThemeModeAsync(mode, JS);
+        open = false;
+    }
+
+    private async Task SetAccent(string accent)
+    {
+        await Preferences.SetAccentAsync(accent, JS);
+        open = false;
+    }
+}
