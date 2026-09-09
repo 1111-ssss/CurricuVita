@@ -15,6 +15,17 @@ public static class IdentityConfigurationExtensions
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
 
+        services.ConfigureApplicationCookie(options =>
+        {
+            var section = configuration.GetSection("Identity:Cookie");
+
+            options.LoginPath = section.GetValue<string>("LoginPath");
+            options.LogoutPath = section.GetValue<string>("LogoutPath");
+            options.AccessDeniedPath = section.GetValue<string>("AccessDeniedPath");
+            options.ExpireTimeSpan = section.GetValue<TimeSpan>("ExpireTimeSpan");
+            options.SlidingExpiration = section.GetValue<bool>("SlidingExpiration");
+        });
+
         services.AddAuthentication()
             .AddGoogle(options =>
             {
