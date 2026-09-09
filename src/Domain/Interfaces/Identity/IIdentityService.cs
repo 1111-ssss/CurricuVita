@@ -1,20 +1,35 @@
 using Domain.Entities;
+using Domain.ResultPattern.Result;
 
 namespace Domain.Interfaces.Identity;
 
 public interface IIdentityService
 {
-    Task<(bool Succeeded, string? Error, int? UserId)> ExternalLoginAsync(
+    Task<Result> ExternalLogin(
         string provider,
         string providerKey,
         string email,
-        string? firstName,
-        string? lastName,
-        string? avatarUrl,
+        string? firstName = null,
+        string? lastName = null,
         CancellationToken cancellationToken = default
     );
-    Task<bool> IsEmailConfirmedAsync(int userId);
-    Task<User> GetUserByEmailAsync(string email);
-    Task<User> GetUserByIdAsync(int id);
-    Task<User> RegisterUserAsync(User user);
+    Task<bool> IsEmailConfirmed(int userId);
+    Task<User?> GetUserByEmail(string email);
+    Task<User?> GetUserById(int id);
+    Task<Result<int>> RegisterUser(
+        string email,
+        string firstName,
+        string lastName,
+        string password,
+        CancellationToken cancellationToken = default
+    );
+    Task<Result<int>> Login(
+        string email,
+        string password,
+        CancellationToken cancellationToken = default
+    );
+    Task Logout();
+    Task<IList<string>> GetRoles(int userId);
+    Task<Result<string>> GenerateEmailConfirmationToken(int userId);
+    Task<Result> ConfirmEmail(int userId, string token);
 }

@@ -1,5 +1,8 @@
+using Domain.Constants;
+using Domain.Interfaces.Identity;
 using Infrastructure.Database;
-using Infrastructure.Database.Entities;
+using Domain.Entities;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 
 namespace Web.Extensions;
@@ -8,7 +11,9 @@ public static class IdentityConfigurationExtensions
 {
     public static IServiceCollection AddIdentityConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
+        services.AddHttpContextAccessor();
+
+        services.AddIdentity<User, IdentityRole<int>>(options =>
         {
             options.User.RequireUniqueEmail = true;
         })
@@ -29,15 +34,37 @@ public static class IdentityConfigurationExtensions
         services.AddAuthentication()
             .AddGoogle(options =>
             {
-                options.ClientId = configuration["Authentication:Google:ClientId"]!;
-                options.ClientSecret = configuration["Authentication:Google:ClientSecret"]!;
+                var section = configuration.GetSection("Authentication:Google");
+
+                options.ClientId = section["ClientId"]!;
+                options.ClientSecret = section["ClientSecret"]!;
             })
             .AddGitHub(options =>
             {
-                options.ClientId = configuration["Authentication:GitHub:ClientId"]!;
-                options.ClientSecret = configuration["Authentication:GitHub:ClientSecret"]!;
+                var section = configuration.GetSection("Authentication:GitHub");
+
+                options.ClientId = section["ClientId"]!;
+                options.ClientSecret = section["ClientSecret"]!;
                 options.Scope.Add("user:email");
             });
+
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("RequireCandidate", policy =>
+                policy.RequireRole(UserRoles.Candidate));
+
+            options.AddPolicy("RequireRecruiter", policy =>
+                policy.RequireRole(UserRoles.Recruiter));
+
+            options.AddPolicy("RequireAdmin", policy =>
+                policy.RequireRole(UserRoles.Administrator));
+
+            options.AddPolicy("RequireRecruiterOrAdmin", policy =>
+                policy.RequireRole(UserRoles.Recruiter, UserRoles.Administrator));
+        });
+
+        services.AddScoped<IIdentityService, IdentityService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         return services;
     }

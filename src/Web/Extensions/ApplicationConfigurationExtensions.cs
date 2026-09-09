@@ -19,7 +19,7 @@ public static class ApplicationConfigurationExtensions
                 await dbSeeder.SeedRoles();
                 await dbSeeder.SeedDatabase();
             }
-        }
+        }        
 
         return app;
     }

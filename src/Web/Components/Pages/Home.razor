@@ -1,7 +1,13 @@
-﻿@page "/"
+@page "/"
+@inject IStringLocalizer<SharedResource> T
 
-<PageTitle>Home</PageTitle>
+<PageTitle>@T["Home_Title"]</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+<div class="py-3">
+    <h1 class="display-5">@T["Home_Heading"]</h1>
+    <p class="lead text-body-secondary">@T["Home_Lead"]</p>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary" href="account/register">@T["Nav_SignUp"]</a>
+        <a class="btn btn-outline-secondary" href="account/login">@T["Nav_SignIn"]</a>
+    </div>
+</div>
