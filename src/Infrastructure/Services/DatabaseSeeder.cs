@@ -68,7 +68,8 @@ public class DatabaseSeeder : IDatabaseSeeder
                 LastName = "System",
                 Location = "Remote",
                 CreatedAt = DateTime.UtcNow,
-                Version = 1
+                UpdatedAt = DateTime.UtcNow,
+                Version = 1,
             };
 
             var result = await _userManager.CreateAsync(adminUser, "Admin123!");
