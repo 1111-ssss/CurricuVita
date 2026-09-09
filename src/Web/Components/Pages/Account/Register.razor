@@ -6,54 +6,55 @@
 
 @inject ISender Sender
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
 
-<PageTitle>Register</PageTitle>
+<PageTitle>@T["Register_Title"]</PageTitle>
 
 <div class="row justify-content-center mt-5">
     <div class="col-md-5">
         <div class="card shadow">
             <div class="card-body p-4">
-                <h3 class="mb-4 text-center">Sign Up</h3>
+                <h3 class="mb-4 text-center">@T["Register_Heading"]</h3>
 
                 <EditForm Model="model" OnValidSubmit="HandleRegister">
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger mb-3" />
 
                     <div class="mb-3">
-                        <label class="form-label">First name</label>
+                        <label class="form-label">@T["Register_FirstName"]</label>
                         <InputText @bind-Value="model.FirstName" class="form-control" />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Last name</label>
+                        <label class="form-label">@T["Register_LastName"]</label>
                         <InputText @bind-Value="model.LastName" class="form-control" />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Location</label>
+                        <label class="form-label">@T["Register_Location"]</label>
                         <InputText @bind-Value="model.Location" class="form-control" />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Email</label>
+                        <label class="form-label">@T["Register_Email"]</label>
                         <InputText @bind-Value="model.Email" class="form-control" />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Password</label>
+                        <label class="form-label">@T["Register_Password"]</label>
                         <InputText type="password" @bind-Value="model.Password" class="form-control" />
                     </div>
 
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary" disabled="@isLoading">
                             @if (isLoading) { <span class="spinner-border spinner-border-sm me-2"></span> }
-                            Sign Up
+                            @T["Register_Submit"]
                         </button>
                     </div>
                 </EditForm>
 
                 <div class="text-center mt-3">
-                    <a href="/account/login">Already have an account? Sign in</a>
+                    <a href="/account/login">@T["Register_LoginLink"]</a>
                 </div>
 
                 @if (!string.IsNullOrEmpty(errorMessage))
@@ -84,19 +85,18 @@
                 Email: model.Email,
                 Password: model.Password
             ));
-            
             if (result.IsSuccess)
             {
                 Navigation.NavigateTo("/", forceLoad: true);
             }
             else
             {
-                errorMessage = result.Error?.Message ?? "Invalid register attempt";
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Register_Failed"]);
             }
         }
         catch (Exception)
         {
-            errorMessage = "Something went wrong. Please try again.";
+            errorMessage = T["Register_Unexpected"];
         }
         finally
         {
@@ -106,19 +106,20 @@
 
     public class RegisterModel
     {
-        [Required]
+        [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
         public string FirstName { get; set; } = "";
 
-        [Required]
+        [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
         public string LastName { get; set; } = "";
 
-        [Required]
+        [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
         public string Location { get; set; } = "";
 
-        [Required, EmailAddress]
+        [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
+        [EmailAddress(ErrorMessageResourceName = nameof(SharedResource.Validation_Email), ErrorMessageResourceType = typeof(SharedResource))]
         public string Email { get; set; } = "";
 
-        [Required]
+        [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
         public string Password { get; set; } = "";
     }
 }

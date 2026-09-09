@@ -6,39 +6,40 @@
 
 @inject ISender Sender
 @inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
 
-<PageTitle>Login</PageTitle>
+<PageTitle>@T["Login_Title"]</PageTitle>
 
 <div class="row justify-content-center mt-5">
     <div class="col-md-5">
         <div class="card shadow">
             <div class="card-body p-4">
-                <h3 class="mb-4 text-center">Sign In</h3>
+                <h3 class="mb-4 text-center">@T["Login_Heading"]</h3>
 
                 <EditForm Model="model" OnValidSubmit="HandleLogin">
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger mb-3" />
 
                     <div class="mb-3">
-                        <label class="form-label">Email</label>
+                        <label class="form-label">@T["Login_Email"]</label>
                         <InputText @bind-Value="model.Email" class="form-control" />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Password</label>
+                        <label class="form-label">@T["Login_Password"]</label>
                         <InputText type="password" @bind-Value="model.Password" class="form-control" />
                     </div>
 
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary" disabled="@isLoading">
                             @if (isLoading) { <span class="spinner-border spinner-border-sm me-2"></span> }
-                            Sign In
+                            @T["Login_Submit"]
                         </button>
                     </div>
                 </EditForm>
 
                 <div class="text-center mt-3">
-                    <a href="/account/register">Create an account</a>
+                    <a href="/account/register">@T["Login_RegisterLink"]</a>
                 </div>
 
                 @if (!string.IsNullOrEmpty(errorMessage))
@@ -66,19 +67,31 @@
                 Email: model.Email,
                 Password: model.Password
             ));
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> feature/database
             if (result.IsSuccess)
             {
                 Navigation.NavigateTo("/", forceLoad: true);
             }
             else
             {
+<<<<<<< HEAD
                 errorMessage = result.Error?.Message ?? "Invalid login attempt";
+=======
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Login_Failed"]);
+>>>>>>> feature/database
             }
         }
         catch (Exception)
         {
+<<<<<<< HEAD
             errorMessage = "Something went wrong. Please try again.";
+=======
+            errorMessage = T["Login_Unexpected"];
+>>>>>>> feature/database
         }
         finally
         {
@@ -88,6 +101,7 @@
 
     public class LoginModel
     {
+<<<<<<< HEAD
         [Required, EmailAddress]
         public string Email { get; set; } = "";
 
@@ -95,3 +109,13 @@
         public string Password { get; set; } = "";
     }
 }
+=======
+        [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
+        [EmailAddress(ErrorMessageResourceName = nameof(SharedResource.Validation_Email), ErrorMessageResourceType = typeof(SharedResource))]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
+        public string Password { get; set; } = "";
+    }
+}
+>>>>>>> feature/database

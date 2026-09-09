@@ -1,0 +1,22 @@
+.theme-menu {
+    min-width: 12rem;
+    display: block;
+    position: absolute;
+    right: 0;
+    left: auto;
+}
+
+.theme-swatch {
+    width: 1.35rem;
+    height: 1.35rem;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid var(--bs-border-color);
+    background: var(--swatch);
+    cursor: pointer;
+}
+
+.theme-swatch.active {
+    border-color: var(--bs-body-color);
+    box-shadow: 0 0 0 2px var(--bs-body-bg), 0 0 0 4px var(--swatch);
+}
