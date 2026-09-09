@@ -18,4 +18,14 @@ public class CurrentUserService : ICurrentUserService
         : null;
         
     public string? Email => _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
+
+    public string? GetBaseUrl()
+    {
+        var request = _httpContextAccessor.HttpContext?.Request;
+        if (request is null)
+        {
+            return null;
+        }
+        return request.Scheme + "://" + request.Host.Value + request.PathBase;
+    }
 }

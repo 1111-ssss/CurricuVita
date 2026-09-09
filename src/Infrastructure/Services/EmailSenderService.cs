@@ -1,4 +1,4 @@
-using Domain.Interfaces.Services;
+using Infrastructure.Interfaces;
 using Domain.Options;
 using Microsoft.Extensions.Options;
 using MimeKit;

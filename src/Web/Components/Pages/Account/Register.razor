@@ -1,0 +1,124 @@
+@page "/account/register"
+
+@using MediatR
+@using System.ComponentModel.DataAnnotations
+@using Application.Features.Identity.Register
+
+@inject ISender Sender
+@inject NavigationManager Navigation
+
+<PageTitle>Register</PageTitle>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h3 class="mb-4 text-center">Sign Up</h3>
+
+                <EditForm Model="model" OnValidSubmit="HandleRegister">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger mb-3" />
+
+                    <div class="mb-3">
+                        <label class="form-label">First name</label>
+                        <InputText @bind-Value="model.FirstName" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Last name</label>
+                        <InputText @bind-Value="model.LastName" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Location</label>
+                        <InputText @bind-Value="model.Location" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <InputText @bind-Value="model.Email" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <InputText type="password" @bind-Value="model.Password" class="form-control" />
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                            @if (isLoading) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                            Sign Up
+                        </button>
+                    </div>
+                </EditForm>
+
+                <div class="text-center mt-3">
+                    <a href="/account/login">Already have an account? Sign in</a>
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger mt-3">@errorMessage</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel model = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task HandleRegister()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await Sender.Send(new RegisterUserRequest(
+                FirstName: model.FirstName,
+                LastName: model.LastName,
+                Location: model.Location,
+                Email: model.Email,
+                Password: model.Password
+            ));
+            
+            if (result.IsSuccess)
+            {
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = result.Error?.Message ?? "Invalid register attempt";
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Something went wrong. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class RegisterModel
+    {
+        [Required]
+        public string FirstName { get; set; } = "";
+
+        [Required]
+        public string LastName { get; set; } = "";
+
+        [Required]
+        public string Location { get; set; } = "";
+
+        [Required, EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        public string Password { get; set; } = "";
+    }
+}

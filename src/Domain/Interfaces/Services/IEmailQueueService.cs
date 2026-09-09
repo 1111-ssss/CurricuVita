@@ -1,6 +1,6 @@
 using Domain.Contracts;
 
-namespace Infrastructure.Interfaces;
+namespace Domain.Interfaces.Services;
 
 public interface IEmailQueueService
 {

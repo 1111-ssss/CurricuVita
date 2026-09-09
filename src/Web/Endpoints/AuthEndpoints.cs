@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Application.Features.Identity.Login;
 using Application.Features.Identity.Logout;
 using Application.Features.Identity.Register;
+using Application.Features.Identity.ConfirmEmail;
 
 namespace Web.Endpoints;
 
@@ -16,6 +17,7 @@ public static class AuthEndpoints
         group.MapPost("login", Login);
         group.MapPost("logout", Logout);
         group.MapPost("register", Register);
+        group.MapGet("confirm-email", ConfirmEmail);
 
         return endpoints;
     }
@@ -45,6 +47,17 @@ public static class AuthEndpoints
     private static async Task<IResult> Register(
         [FromServices] IMediator mediator,
         RegisterUserRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var result = await mediator.Send(request, cancellationToken);
+
+        return result.ToMinimalApiResult();
+    }
+
+    private static async Task<IResult> ConfirmEmail(
+        [FromServices] IMediator mediator,
+        ConfirmEmailRequest request,
         CancellationToken cancellationToken = default
     )
     {
