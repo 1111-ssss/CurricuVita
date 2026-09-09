@@ -67,31 +67,19 @@
                 Email: model.Email,
                 Password: model.Password
             ));
-<<<<<<< HEAD
-            
-=======
 
->>>>>>> feature/database
             if (result.IsSuccess)
             {
                 Navigation.NavigateTo("/", forceLoad: true);
             }
             else
             {
-<<<<<<< HEAD
-                errorMessage = result.Error?.Message ?? "Invalid login attempt";
-=======
                 errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Login_Failed"]);
->>>>>>> feature/database
             }
         }
         catch (Exception)
         {
-<<<<<<< HEAD
-            errorMessage = "Something went wrong. Please try again.";
-=======
             errorMessage = T["Login_Unexpected"];
->>>>>>> feature/database
         }
         finally
         {
@@ -101,15 +89,6 @@
 
     public class LoginModel
     {
-<<<<<<< HEAD
-        [Required, EmailAddress]
-        public string Email { get; set; } = "";
-
-        [Required]
-        public string Password { get; set; } = "";
-    }
-}
-=======
         [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
         [EmailAddress(ErrorMessageResourceName = nameof(SharedResource.Validation_Email), ErrorMessageResourceType = typeof(SharedResource))]
         public string Email { get; set; } = "";
@@ -118,4 +97,3 @@
         public string Password { get; set; } = "";
     }
 }
->>>>>>> feature/database

@@ -5,6 +5,7 @@ using FluentEmail.MailKitSmtp;
 using Infrastructure.Interfaces;
 using Infrastructure.Services;
 using Web.BackgroundServices;
+using Web.Theming;
 
 namespace Web.Extensions;
 
@@ -24,6 +25,18 @@ public static class ServiceConfigurationExtensions
         services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
+        services.AddScoped<UiPreferencesState>();
+
+        services.AddLocalization();
+        services.Configure<RequestLocalizationOptions>(options =>
+        {
+            var supportedCultures = new[] { "en", "ru" };
+            options.SetDefaultCulture("en")
+                .AddSupportedCultures(supportedCultures)
+                .AddSupportedUICultures(supportedCultures);
+            options.ApplyCurrentCultureToResponseHeaders = true;
+        });
+
         // Logging
         services.AddLogging();
         
@@ -42,7 +55,7 @@ public static class ServiceConfigurationExtensions
         services.AddHostedService<EmailBackgroundService>();
         
         // Email Configuration
-        var emailSection = configuration.GetSection("Email");
+        var emailSection = configuration.GetSection("EmailSender");
         services
             .AddFluentEmail(emailSection["From"])
             .AddMailKitSender(new SmtpClientOptions
