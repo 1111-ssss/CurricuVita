@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Features.Identity.Logout;
 
-public class LogoutHandler : IRequestHandler<LogoutRequest>
+public class LogoutHandler : IRequestHandler<LogoutCommand>
 {
     private readonly IIdentityService _identityService;
 
@@ -12,7 +12,7 @@ public class LogoutHandler : IRequestHandler<LogoutRequest>
         _identityService = identityService;
     }
 
-    public async Task Handle(LogoutRequest request, CancellationToken cancellationToken)
+    public async Task Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
         await _identityService.Logout();
     }

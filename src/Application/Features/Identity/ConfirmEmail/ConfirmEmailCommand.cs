@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Features.Identity.ConfirmEmail;
 
-public record ConfirmEmailRequest(
+public record ConfirmEmailCommand(
     int Id,
     string Token
 ) : IRequest<Result>;

@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Features.Identity.Login;
 
-public record LoginUserRequest(
+public record LoginUserCommand(
     string Email,
     string Password
 ) : IRequest<Result>;

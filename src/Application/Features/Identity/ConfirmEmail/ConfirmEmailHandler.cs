@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Application.Features.Identity.ConfirmEmail;
 
-public class ConfirmEmailHandler : IRequestHandler<ConfirmEmailRequest, Result>
+public class ConfirmEmailHandler : IRequestHandler<ConfirmEmailCommand, Result>
 {
     private readonly IIdentityService _identityService;
 
@@ -13,7 +13,7 @@ public class ConfirmEmailHandler : IRequestHandler<ConfirmEmailRequest, Result>
         _identityService = identityService;
     }
 
-    public async Task<Result> Handle(ConfirmEmailRequest request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
     {
         var result = await _identityService.ConfirmEmail(request.Id, request.Token);
 

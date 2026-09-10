@@ -3,7 +3,7 @@ using Domain.ResultPattern.Result;
 
 namespace Application.Features.Identity.Register;
 
-public record RegisterUserRequest(
+public record RegisterUserCommand(
     string FirstName,
     string LastName,
     string Location,

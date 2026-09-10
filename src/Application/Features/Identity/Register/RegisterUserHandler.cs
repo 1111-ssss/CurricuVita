@@ -7,7 +7,7 @@ using Application.Constants;
 
 namespace Application.Features.Identity.Register;
 
-public class RegisterUserHandler : IRequestHandler<RegisterUserRequest, Result>
+public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, Result>
 {
     private readonly IIdentityService _identityService;
     private readonly ICurrentUserService _currentUser;
@@ -27,7 +27,7 @@ public class RegisterUserHandler : IRequestHandler<RegisterUserRequest, Result>
         _emailTemplateRenderer = emailTemplateRenderer;
     }
 
-    public async Task<Result> Handle(RegisterUserRequest request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
         var result = await _identityService.RegisterUser(
             email: request.Email,

@@ -24,7 +24,7 @@ public static class AuthEndpoints
 
     private static async Task<IResult> Login(
         [FromServices] IMediator mediator,
-        LoginUserRequest request,
+        LoginUserCommand request,
         CancellationToken cancellationToken = default
     )
     {
@@ -38,14 +38,14 @@ public static class AuthEndpoints
         CancellationToken cancellationToken = default
     )
     {
-        await mediator.Send(new LogoutRequest(), cancellationToken);
+        await mediator.Send(new LogoutCommand(), cancellationToken);
 
         return Results.Unauthorized();
     }
 
     private static async Task<IResult> Register(
         [FromServices] IMediator mediator,
-        RegisterUserRequest request,
+        RegisterUserCommand request,
         CancellationToken cancellationToken = default
     )
     {
@@ -56,7 +56,7 @@ public static class AuthEndpoints
 
     private static async Task<IResult> ConfirmEmail(
         [FromServices] IMediator mediator,
-        [AsParameters] ConfirmEmailRequest request,
+        [AsParameters] ConfirmEmailCommand request,
         CancellationToken cancellationToken = default
     )
     {
