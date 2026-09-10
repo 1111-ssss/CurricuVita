@@ -35,11 +35,10 @@ public static class AuthEndpoints
 
     private static async Task<IResult> Logout(
         [FromServices] IMediator mediator,
-        LogoutRequest request,
         CancellationToken cancellationToken = default
     )
     {
-        await mediator.Send(request, cancellationToken);
+        await mediator.Send(new LogoutRequest(), cancellationToken);
 
         return Results.Unauthorized();
     }
