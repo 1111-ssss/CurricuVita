@@ -1,7 +1,9 @@
 using Application;
+using Application.Behaviors;
 using Domain.Interfaces.Services;
 using Domain.Options;
 using FluentEmail.MailKitSmtp;
+using FluentValidation;
 using Infrastructure.Interfaces;
 using Infrastructure.Services;
 using Web.BackgroundServices;
@@ -40,10 +42,13 @@ public static class ServiceConfigurationExtensions
         // Logging
         services.AddLogging();
         
-        // MediatR
+        // MediatR, FluentValidation
+        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly)
-        );
+        {
+            cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly);
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+        });
 
         // Services
         services.AddScoped<IEmailSenderService, EmailSenderService>();
