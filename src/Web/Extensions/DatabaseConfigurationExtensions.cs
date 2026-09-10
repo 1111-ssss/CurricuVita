@@ -1,5 +1,6 @@
 using Infrastructure.Database.DependencyInjection;
 using Ardalis.Specification;
+using Domain.Interfaces.Database;
 using Infrastructure.Interfaces;
 using Infrastructure.Services;
 using Infrastructure.Database.Repositories;
@@ -13,6 +14,8 @@ public static class DatabaseConfigurationExtensions
         services.ConfigureDbContext(configuration);
 
         services.AddScoped(typeof(IRepositoryBase<>), typeof(BaseRepository<>));
+
+        services.AddScoped<IAttributeRepository, AttributeRepository>();
 
         services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
 
