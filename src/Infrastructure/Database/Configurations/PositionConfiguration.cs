@@ -10,6 +10,11 @@ public class PositionConfiguration : IEntityTypeConfiguration<Position>
     {
         builder.Property(p => p.Title).HasMaxLength(250).IsRequired();
         builder.Property(p => p.DescriptionMarkdown).HasColumnType("text");
+        builder.Property(p => p.Version).IsConcurrencyToken();
+
+        builder.HasIndex(p => p.Title);
+        builder.HasIndex(p => p.CreatedAt);
+        builder.HasIndex(p => p.UpdatedAt);
 
         builder.HasOne(p => p.CreatedBy)
             .WithMany()

@@ -4,15 +4,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Database.Configurations;
 
-public class ProjectTagConfiguration : IEntityTypeConfiguration<ProjectTag>
+public class PositionTagConfiguration : IEntityTypeConfiguration<PositionTag>
 {
-    public void Configure(EntityTypeBuilder<ProjectTag> builder)
+    public void Configure(EntityTypeBuilder<PositionTag> builder)
     {
-        builder.HasKey(pt => new { pt.ProjectId, pt.TagId });
+        builder.HasIndex(pt => new { pt.PositionId, pt.TagId })
+            .IsUnique();
 
-        builder.HasOne(pt => pt.Project)
-            .WithMany(p => p.Tags)
-            .HasForeignKey(pt => pt.ProjectId)
+        builder.HasOne(pt => pt.Position)
+            .WithMany(p => p.RequiredTags)
+            .HasForeignKey(pt => pt.PositionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(pt => pt.Tag)

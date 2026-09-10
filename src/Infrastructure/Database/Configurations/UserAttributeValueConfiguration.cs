@@ -10,6 +10,7 @@ public class UserAttributeValueConfiguration : IEntityTypeConfiguration<UserAttr
     {
         builder.HasIndex(v => new { v.UserId, v.AttributeDefinitionId })
             .IsUnique();
+        builder.HasIndex(v => v.AttributeDefinitionId);
 
         builder.Property(v => v.Version).IsConcurrencyToken();
 
@@ -21,6 +22,6 @@ public class UserAttributeValueConfiguration : IEntityTypeConfiguration<UserAttr
         builder.HasOne(v => v.AttributeDefinition)
             .WithMany(a => a.UserValues)
             .HasForeignKey(v => v.AttributeDefinitionId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

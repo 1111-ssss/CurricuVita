@@ -10,6 +10,8 @@ public class CVConfiguration : IEntityTypeConfiguration<CV>
     {
         builder.HasIndex(c => new { c.UserId, c.PositionId })
             .IsUnique();
+        builder.HasIndex(c => c.PositionId);
+        builder.HasIndex(c => c.CreatedAt);
 
         builder.Property(c => c.Version).IsConcurrencyToken();
 
@@ -21,6 +23,6 @@ public class CVConfiguration : IEntityTypeConfiguration<CV>
         builder.HasOne(c => c.Position)
             .WithMany(p => p.CVs)
             .HasForeignKey(c => c.PositionId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

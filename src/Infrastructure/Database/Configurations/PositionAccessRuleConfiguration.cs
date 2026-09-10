@@ -19,6 +19,6 @@ public class PositionAccessRuleConfiguration : IEntityTypeConfiguration<Position
         builder.HasOne(r => r.AttributeDefinition)
             .WithMany()
             .HasForeignKey(r => r.AttributeDefinitionId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

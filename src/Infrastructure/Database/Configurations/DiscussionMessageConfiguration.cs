@@ -10,6 +10,8 @@ public class DiscussionMessageConfiguration : IEntityTypeConfiguration<Discussio
     {
         builder.Property(m => m.ContentMarkdown).HasColumnType("text").IsRequired();
 
+        builder.HasIndex(m => new { m.PositionId, m.CreatedAt });
+
         builder.HasOne(m => m.Position)
             .WithMany(p => p.Messages)
             .HasForeignKey(m => m.PositionId)
