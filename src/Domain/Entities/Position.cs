@@ -8,8 +8,10 @@ public class Position : IEntity
     public string Title { get; set; } = string.Empty;
     public string DescriptionMarkdown { get; set; } = string.Empty;
     public bool IsPublic { get; set; }
+    public int? MaxProjectCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public int Version { get; set; }
     public int CreatedById { get; set; }
     public User CreatedBy { get; set; } = new();
 
