@@ -18,7 +18,8 @@ public class GetAttributeHandler : IRequestHandler<GetAttributeQuery, Result<Att
 
     public async Task<Result<AttributeDto>> Handle(
         GetAttributeQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var item = await _attributes.SingleOrDefaultAsync(
             new AttributeByIdSpec(request.Id),

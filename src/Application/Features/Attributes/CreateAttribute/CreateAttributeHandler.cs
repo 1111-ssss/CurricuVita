@@ -20,9 +20,9 @@ public class CreateAttributeHandler : IRequestHandler<CreateAttributeCommand, Re
 
     public async Task<Result<AttributeDto>> Handle(
         CreateAttributeCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        // Input shape is validated by ValidationBehavior before the handler runs.
         var command = request with
         {
             Category = request.Category?.Trim() ?? string.Empty,
@@ -60,6 +60,7 @@ public class CreateAttributeHandler : IRequestHandler<CreateAttributeCommand, Re
             normalizedOptions,
             entity.Version,
             entity.CreatedAt,
-            0));
+            0
+        ));
     }
 }

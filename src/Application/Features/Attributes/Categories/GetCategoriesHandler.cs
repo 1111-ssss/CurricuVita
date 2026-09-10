@@ -16,7 +16,8 @@ public class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, Result<L
 
     public async Task<Result<List<string>>> Handle(
         GetCategoriesQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var categories = await _attributes.ListAsync(
             new AttributeCategoriesSpec(),

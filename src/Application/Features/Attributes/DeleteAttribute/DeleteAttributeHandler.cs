@@ -17,7 +17,8 @@ public class DeleteAttributeHandler : IRequestHandler<DeleteAttributeCommand, Re
 
     public async Task<Result> Handle(
         DeleteAttributeCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var entity = await _attributes.GetByIdAsync(request.Id, cancellationToken);
         if (entity is null)
