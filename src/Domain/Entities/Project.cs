@@ -12,6 +12,7 @@ public class Project : IEntity
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public string DescriptionMarkdown { get; set; } = string.Empty;
+    public int Version { get; set; }
 
     public ICollection<ProjectTag> Tags { get; set; } = new List<ProjectTag>();
 }

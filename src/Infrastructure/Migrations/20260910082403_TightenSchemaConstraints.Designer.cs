@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260910082403_TightenSchemaConstraints")]
+    partial class TightenSchemaConstraints
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,10 +63,6 @@ namespace Infrastructure.Migrations
                     b.Property<string>("OptionsJson")
                         .HasColumnType("text");
 
-                    b.Property<int>("Version")
-                        .IsConcurrencyToken()
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Category");
@@ -84,13 +83,11 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasColumnType("text");
 
                     b.Property<string>("SvgTemplate")
                         .IsRequired()
@@ -98,13 +95,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
 
                     b.ToTable("Badges");
                 });
@@ -134,8 +127,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
 
                     b.HasIndex("PositionId");
 
@@ -234,17 +225,11 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Version")
-                        .IsConcurrencyToken()
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("CreatedById");
-
-                    b.HasIndex("Title");
 
                     b.HasIndex("UpdatedAt");
 
@@ -366,8 +351,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Title");
 
                     b.HasIndex("UserId", "EndDate");
 
@@ -594,8 +577,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("BadgeId");
 
-                    b.HasIndex("UserId", "BadgeId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserBadges");
                 });
@@ -737,7 +719,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.Position", "Position")
                         .WithMany("CVs")
                         .HasForeignKey("PositionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", "User")
@@ -805,7 +787,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.AttributeDefinition", "AttributeDefinition")
                         .WithMany()
                         .HasForeignKey("AttributeDefinitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Position", "Position")
@@ -824,7 +806,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.AttributeDefinition", "AttributeDefinition")
                         .WithMany("PositionAttributes")
                         .HasForeignKey("AttributeDefinitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Position", "Position")
@@ -892,7 +874,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.AttributeDefinition", "AttributeDefinition")
                         .WithMany("UserValues")
                         .HasForeignKey("AttributeDefinitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", "User")

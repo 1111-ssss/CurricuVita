@@ -27,7 +27,7 @@ public static class IdentityConfigurationExtensions
             options.LoginPath = section.GetValue<string>("LoginPath");
             options.LogoutPath = section.GetValue<string>("LogoutPath");
             options.AccessDeniedPath = section.GetValue<string>("AccessDeniedPath");
-            options.ExpireTimeSpan = TimeSpan.FromDays(section.GetValue<double>("ExpireTimeSpan"));
+            options.ExpireTimeSpan = section.GetValue<TimeSpan>("ExpireTimeSpan");
             options.SlidingExpiration = section.GetValue<bool>("SlidingExpiration");
         });
 

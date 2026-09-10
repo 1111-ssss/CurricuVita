@@ -10,6 +10,7 @@ public class LikeConfiguration : IEntityTypeConfiguration<Like>
     {
         builder.HasIndex(l => new { l.CVId, l.RecruiterId })
             .IsUnique();
+        builder.HasIndex(l => l.RecruiterId);
 
         builder.HasOne(l => l.CV)
             .WithMany(c => c.Likes)

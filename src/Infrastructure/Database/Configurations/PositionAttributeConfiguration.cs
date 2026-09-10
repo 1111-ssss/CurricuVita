@@ -12,11 +12,12 @@ public class PositionAttributeConfiguration : IEntityTypeConfiguration<PositionA
 
         builder.HasOne(pa => pa.Position)
             .WithMany(p => p.RequiredAttributes)
-            .HasForeignKey(pa => pa.PositionId);
+            .HasForeignKey(pa => pa.PositionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(pa => pa.AttributeDefinition)
             .WithMany(a => a.PositionAttributes)
             .HasForeignKey(pa => pa.AttributeDefinitionId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

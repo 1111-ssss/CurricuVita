@@ -9,11 +9,13 @@ public class AttributeDefinitionConfiguration : IEntityTypeConfiguration<Attribu
     public void Configure(EntityTypeBuilder<AttributeDefinition> builder)
     {
         builder.HasIndex(a => a.Name).IsUnique();
+        builder.HasIndex(a => a.Category);
 
         builder.Property(a => a.Name).HasMaxLength(150).IsRequired();
         builder.Property(a => a.Category).HasMaxLength(100).IsRequired();
         builder.Property(a => a.Description).HasMaxLength(1000);
         builder.Property(a => a.DataType).IsRequired();
         builder.Property(a => a.OptionsJson).HasColumnType("text");
+        builder.Property(a => a.Version).IsConcurrencyToken();
     }
 }
