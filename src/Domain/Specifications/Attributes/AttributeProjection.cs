@@ -22,7 +22,7 @@ public record AttributeProjection(
         Name,
         Description,
         DataType,
-        AttributeOptions.DeserializeOptions(OptionsJson),
+        AttributeOptionsHelper.DeserializeOptions(OptionsJson),
         Version,
         CreatedAt,
         UsageCount);
