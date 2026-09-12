@@ -21,4 +21,5 @@ public static class Errors
     public static Error AttributeInvalidOptions = new(HttpStatusCode.BadRequest, "AttributeInvalidOptions", "Dropdown attributes require at least one option; other types must not have options.");
     public static Error ConcurrencyConflict = new(HttpStatusCode.Conflict, "ConcurrencyConflict", "The record was modified by another user. Reload and try again.");
     public static Error ValidationFailed = new(HttpStatusCode.BadRequest, "ValidationFailed", "Validation failed.");
+    public static Error EmailConfirmationLinkFailed = new(HttpStatusCode.BadRequest, "EmailConfirmationLinkFailed", "Could not prepare the email confirmation link.");
 }

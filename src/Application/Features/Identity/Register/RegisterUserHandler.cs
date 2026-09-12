@@ -1,9 +1,12 @@
 using Domain.Interfaces.Identity;
 using Domain.ResultPattern.Result;
+using Domain.ResultPattern.Errors;
 using Domain.Interfaces.Services;
+using Domain.Options;
 using MediatR;
 using Domain.Contracts;
 using Application.Constants;
+using Microsoft.Extensions.Options;
 
 namespace Application.Features.Identity.Register;
 
@@ -13,18 +16,21 @@ public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, Result>
     private readonly ICurrentUserService _currentUser;
     private readonly IEmailQueueService _emailQueue;
     private readonly IEmailTemplateRenderer _emailTemplateRenderer;
+    private readonly AppOptions _appOptions;
 
     public RegisterUserHandler(
         IIdentityService identityService,
         ICurrentUserService currentUser,
         IEmailQueueService emailQueue,
-        IEmailTemplateRenderer emailTemplateRenderer
+        IEmailTemplateRenderer emailTemplateRenderer,
+        IOptions<AppOptions> appOptions
     )
     {
         _identityService = identityService;
         _currentUser = currentUser;
         _emailQueue = emailQueue;
         _emailTemplateRenderer = emailTemplateRenderer;
+        _appOptions = appOptions.Value;
     }
 
     public async Task<Result> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
@@ -45,11 +51,19 @@ public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, Result>
         var emailConfirmationToken = await _identityService.GenerateEmailConfirmationToken(result.Value);
         if (!emailConfirmationToken.IsSuccess)
         {
-            return result;
+            return Result.Failure(emailConfirmationToken.Error!);
         }
 
-        var baseUrl = _currentUser.GetBaseUrl();
-        var confirmUrl = $"{baseUrl}{EmailTemplateConstants.ConfirmEmailUrl}?id={result.Value}?token={emailConfirmationToken.Value}";
+        var baseUrl = string.IsNullOrWhiteSpace(_appOptions.BaseUrl)
+            ? _currentUser.GetBaseUrl()
+            : _appOptions.BaseUrl.TrimEnd('/');
+            
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            return Result.Failure(Errors.EmailConfirmationLinkFailed);
+        }
+
+        var confirmUrl = $"{baseUrl}{EmailTemplateConstants.ConfirmEmailUrl}?id={result.Value}&token={Uri.EscapeDataString(emailConfirmationToken.Value)}";
 
         var emailBody = await _emailTemplateRenderer.Render(
             EmailTemplateConstants.ConfirmEmail,
