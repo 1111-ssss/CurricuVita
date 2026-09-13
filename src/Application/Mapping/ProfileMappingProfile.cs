@@ -1,0 +1,40 @@
+using AutoMapper;
+using Domain.Contracts;
+using Domain.Entities;
+using Domain.Enums;
+using Domain.Helpers;
+
+namespace Application.Mapping;
+
+public sealed class ProfileMappingProfile : Profile
+{
+    public ProfileMappingProfile()
+    {
+        CreateMap<User, MeDto>();
+
+        CreateMap<UserAttributeValue, ProfileAttributeValueDto>()
+            .ForCtorParam(nameof(ProfileAttributeValueDto.ValueId), o => o.MapFrom(s => (int?)s.Id))
+            .ForCtorParam(nameof(ProfileAttributeValueDto.AttributeDefinitionId), o => o.MapFrom(s => s.AttributeDefinition.Id))
+            .ForCtorParam(nameof(ProfileAttributeValueDto.Name), o => o.MapFrom(s => s.AttributeDefinition.Name))
+            .ForCtorParam(nameof(ProfileAttributeValueDto.Category), o => o.MapFrom(s => s.AttributeDefinition.Category))
+            .ForCtorParam(nameof(ProfileAttributeValueDto.Description), o => o.MapFrom(s => s.AttributeDefinition.Description))
+            .ForCtorParam(nameof(ProfileAttributeValueDto.DataType), o => o.MapFrom(s => s.AttributeDefinition.DataType))
+            .ForCtorParam(nameof(ProfileAttributeValueDto.Options), o => o.MapFrom(s => AttributeOptionsHelper.DeserializeOptions(s.AttributeDefinition.OptionsJson)))
+            .ForCtorParam(nameof(ProfileAttributeValueDto.DropdownValue), o => o.MapFrom(s =>
+                s.AttributeDefinition.DataType == AttributeDataType.Dropdown ? s.StringValue : null));
+
+        CreateMap<Project, ProjectDto>()
+            .ForCtorParam(nameof(ProjectDto.Tags), o => o.MapFrom(s => s.Tags
+                .Where(t => t.Tag != null)
+                .Select(t => t.Tag.Name)
+                .OrderBy(n => n)
+                .ToList()));
+
+        CreateMap<CV, CvListItemDto>()
+            .ForCtorParam(nameof(CvListItemDto.PositionTitle), o => o.MapFrom(s => s.Position.Title));
+
+        CreateMap<AttributeDefinition, AttributeDto>()
+            .ForCtorParam(nameof(AttributeDto.Options), o => o.MapFrom(s => AttributeOptionsHelper.DeserializeOptions(s.OptionsJson)))
+            .ForCtorParam(nameof(AttributeDto.UsageCount), o => o.MapFrom(s => 0));
+    }
+}
