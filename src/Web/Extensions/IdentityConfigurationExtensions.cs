@@ -66,6 +66,8 @@ public static class IdentityConfigurationExtensions
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        services.AddCascadingAuthenticationState();
+
         return services;
     }
 }
