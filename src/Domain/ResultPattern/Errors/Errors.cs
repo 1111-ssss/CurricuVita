@@ -22,4 +22,11 @@ public static class Errors
     public static Error ConcurrencyConflict = new(HttpStatusCode.Conflict, "ConcurrencyConflict", "The record was modified by another user. Reload and try again.");
     public static Error ValidationFailed = new(HttpStatusCode.BadRequest, "ValidationFailed", "Validation failed.");
     public static Error EmailConfirmationLinkFailed = new(HttpStatusCode.BadRequest, "EmailConfirmationLinkFailed", "Could not prepare the email confirmation link.");
+    public static Error PositionNotFound = new(HttpStatusCode.NotFound, "PositionNotFound", "Position not found.");
+    public static Error PositionInvalidTitle = new(HttpStatusCode.BadRequest, "PositionInvalidTitle", "Title is required (max 250 chars).");
+    public static Error PositionInvalidDescription = new(HttpStatusCode.BadRequest, "PositionInvalidDescription", "Description must be at most 5000 characters.");
+    public static Error PositionInvalidMaxProjects = new(HttpStatusCode.BadRequest, "PositionInvalidMaxProjects", "Max projects must be between 1 and 50.");
+    public static Error PositionAttributeDuplicate = new(HttpStatusCode.BadRequest, "PositionAttributeDuplicate", "Each attribute can be added to a position only once.");
+    public static Error PositionAttributeNotFound = new(HttpStatusCode.BadRequest, "PositionAttributeNotFound", "One of the selected attributes does not exist.");
+    public static Error PositionAccessRuleInvalid = new(HttpStatusCode.BadRequest, "PositionAccessRuleInvalid", "Access rules must reference existing attributes and non-empty values.");
 }
