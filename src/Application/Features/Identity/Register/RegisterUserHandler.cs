@@ -4,7 +4,7 @@ using Domain.ResultPattern.Errors;
 using Domain.Interfaces.Services;
 using Domain.Options;
 using MediatR;
-using Domain.Contracts;
+using Domain.Contracts.UserContracts;
 using Application.Constants;
 using Microsoft.Extensions.Options;
 

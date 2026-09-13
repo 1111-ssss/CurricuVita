@@ -1,5 +1,6 @@
 using AutoMapper;
-using Domain.Contracts;
+using Domain.Contracts.AttributeContracts;
+using Domain.Contracts.UserContracts;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Helpers;

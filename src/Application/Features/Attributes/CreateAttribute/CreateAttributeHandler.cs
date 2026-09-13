@@ -1,4 +1,4 @@
-using Domain.Contracts;
+using Domain.Contracts.AttributeContracts;
 using Domain.Entities;
 using Domain.Helpers;
 using Domain.Interfaces.Database;

@@ -1,4 +1,4 @@
-using Domain.Contracts;
+using Domain.Contracts.AttributeContracts;
 using Domain.Enums;
 using Domain.ResultPattern.Result;
 using MediatR;

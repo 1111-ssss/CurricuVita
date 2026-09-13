@@ -1,5 +1,5 @@
 using Ardalis.Specification;
-using Domain.Contracts;
+using Domain.Contracts.UserContracts;
 using Domain.Entities;
 using Domain.ResultPattern.Result;
 

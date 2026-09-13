@@ -1,6 +1,7 @@
 using Ardalis.Specification;
 using AutoMapper;
-using Domain.Contracts;
+using Domain.Contracts.AttributeContracts;
+using Domain.Contracts.UserContracts;
 using Domain.Entities;
 using Domain.Interfaces.Database;
 using Domain.ResultPattern.Errors;
@@ -23,7 +24,8 @@ public class GetProfileHandler : IRequestHandler<GetProfileQuery, Result<Profile
         IRepositoryBase<UserAttributeValue> values,
         IProjectRepository projects,
         IRepositoryBase<CV> cvs,
-        IMapper mapper)
+        IMapper mapper
+    )
     {
         _users = users;
         _values = values;

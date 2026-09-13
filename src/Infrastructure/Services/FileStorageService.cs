@@ -2,7 +2,7 @@ using Domain.Interfaces.Services;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Domain.Constants;
-using Domain.Contracts;
+using Domain.Contracts.UserContracts;
 using Domain.ResultPattern.Result;
 using Domain.ResultPattern.Errors;
 using Microsoft.Extensions.Options;

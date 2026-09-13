@@ -1,6 +1,6 @@
 using Domain.Enums;
 
-namespace Domain.Contracts;
+namespace Domain.Contracts.AttributeContracts;
 
 public record ProfileAttributeValueDto(
     int? ValueId,

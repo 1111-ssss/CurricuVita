@@ -1,4 +1,4 @@
-namespace Domain.Contracts;
+namespace Domain.Contracts.AttributeContracts;
 
 public record AttributeValueInput(
     int? ValueId,

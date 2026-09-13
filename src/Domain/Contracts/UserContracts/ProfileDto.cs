@@ -1,4 +1,6 @@
-namespace Domain.Contracts;
+using Domain.Contracts.AttributeContracts;
+
+namespace Domain.Contracts.UserContracts;
 
 public record ProfileDto(
     MeDto Me,
