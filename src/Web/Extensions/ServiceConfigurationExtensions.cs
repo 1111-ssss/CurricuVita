@@ -52,7 +52,12 @@ public static class ServiceConfigurationExtensions
             cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly);
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
-        services.AddAutoMapper(typeof(AssemblyMarker).Assembly);
+
+        // AutoMapper
+        services.AddAutoMapper(
+            cfg => {},
+            typeof(AssemblyMarker).Assembly
+        );
 
         // Services
         services.AddScoped<IEmailSenderService, EmailSenderService>();
