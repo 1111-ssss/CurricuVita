@@ -1,3 +1,4 @@
+using Domain.Enums;
 using Domain.Interfaces.Database;
 
 namespace Domain.Entities;
@@ -10,6 +11,8 @@ public class CV : IEntity
 
     public int PositionId { get; set; }
     public Position Position { get; set; } = new();
+
+    public CvStatus Status { get; set; } = CvStatus.Draft;
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
