@@ -10,6 +10,8 @@ public sealed class CvsByUserSpec : Specification<CV>
         Query
             .Where(c => c.UserId == userId)
             .Include(c => c.Position)
+                .ThenInclude(p => p.AccessRules)
+                .ThenInclude(r => r.AttributeDefinition)
             .OrderByDescending(c => c.UpdatedAt);
     }
 }
