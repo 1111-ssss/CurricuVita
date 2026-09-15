@@ -18,7 +18,8 @@ public class PublishCvHandler : IRequestHandler<PublishCvCommand, Result>
 
     public PublishCvHandler(
         IRepositoryBase<CV> cvs,
-        IRepositoryBase<UserAttributeValue> values)
+        IRepositoryBase<UserAttributeValue> values
+    )
     {
         _cvs = cvs;
         _values = values;
@@ -49,10 +50,10 @@ public class PublishCvHandler : IRequestHandler<PublishCvCommand, Result>
         }
 
         var values = await _values.ListAsync(
-            new UserAttributeValuesByUserSpec(cv.UserId), cancellationToken);
+            new UserAttributeValuesByUserSpec(cv.UserId), cancellationToken
+        );
         var byAttribute = values.ToDictionary(v => v.AttributeDefinitionId, v => v);
 
-        // Publish only when every required attribute is filled.
         foreach (var pa in cv.Position.RequiredAttributes.Where(a => a.IsRequired))
         {
             byAttribute.TryGetValue(pa.AttributeDefinitionId, out var val);
@@ -68,7 +69,6 @@ public class PublishCvHandler : IRequestHandler<PublishCvCommand, Result>
 
         try
         {
-            // Optimistic locking via Version concurrency token.
             await _cvs.UpdateAsync(cv, cancellationToken);
             await _cvs.SaveChangesAsync(cancellationToken);
         }
