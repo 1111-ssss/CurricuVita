@@ -29,4 +29,9 @@ public static class Errors
     public static Error PositionAttributeDuplicate = new(HttpStatusCode.BadRequest, "PositionAttributeDuplicate", "Each attribute can be added to a position only once.");
     public static Error PositionAttributeNotFound = new(HttpStatusCode.BadRequest, "PositionAttributeNotFound", "One of the selected attributes does not exist.");
     public static Error PositionAccessRuleInvalid = new(HttpStatusCode.BadRequest, "PositionAccessRuleInvalid", "Access rules must reference existing attributes and non-empty values.");
+    public static Error CvNotFound = new(HttpStatusCode.NotFound, "CvNotFound", "CV not found.");
+    public static Error CvAlreadyExists = new(HttpStatusCode.Conflict, "CvAlreadyExists", "Only one CV per position is allowed.");
+    public static Error CvAccessDenied = new(HttpStatusCode.Forbidden, "CvAccessDenied", "This position is not available for you.");
+    public static Error CvNotReady = new(HttpStatusCode.BadRequest, "CvNotReady", "All required attributes must be filled before publishing.");
+    public static Error CvForbidden = new(HttpStatusCode.Forbidden, "CvForbidden", "You cannot modify this CV.");
 }
