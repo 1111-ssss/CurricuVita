@@ -40,6 +40,7 @@ public class ListPositionCvsHandler : IRequestHandler<ListPositionCvsQuery, Resu
                 c.Id,
                 c.UserId,
                 $"{c.User?.FirstName} {c.User?.LastName}".Trim(),
+                c.Status,
                 c.CreatedAt,
                 c.UpdatedAt,
                 c.Likes.Count
