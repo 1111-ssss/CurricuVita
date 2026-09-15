@@ -8,5 +8,5 @@ public record GetCvDetailQuery(
     int CvId,
     int RequesterUserId,
     bool IsAdmin,
-    bool CanLike = false
+    bool IsRecruiter = false
 ) : IRequest<Result<CvDetailDto>>;

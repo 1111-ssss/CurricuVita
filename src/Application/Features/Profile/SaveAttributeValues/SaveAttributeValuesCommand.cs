@@ -6,5 +6,7 @@ namespace Application.Features.Profile.SaveAttributeValues;
 
 public record SaveAttributeValuesCommand(
     int UserId,
-    List<AttributeValueInput> Items
+    List<AttributeValueInput> Items,
+    int RequesterUserId,
+    bool IsAdmin = false
 ) : IRequest<Result<List<ProfileAttributeValueDto>>>;

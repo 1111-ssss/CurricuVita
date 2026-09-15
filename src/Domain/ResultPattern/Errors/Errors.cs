@@ -34,6 +34,7 @@ public static class Errors
     public static Error CvAccessDenied = new(HttpStatusCode.Forbidden, "CvAccessDenied", "This position is not available for you.");
     public static Error CvNotReady = new(HttpStatusCode.BadRequest, "CvNotReady", "All required attributes must be filled before publishing.");
     public static Error CvForbidden = new(HttpStatusCode.Forbidden, "CvForbidden", "You cannot modify this CV.");
+    public static Error ProfileForbidden = new(HttpStatusCode.Forbidden, "ProfileForbidden", "You cannot modify this profile.");
     public static Error DiscussionNotFound = new(HttpStatusCode.NotFound, "DiscussionNotFound", "Discussion message not found.");
     public static Error DiscussionInvalidContent = new(HttpStatusCode.BadRequest, "DiscussionInvalidContent", "Message text is required (max 5000 chars).");
     public static Error DiscussionForbidden = new(HttpStatusCode.Forbidden, "DiscussionForbidden", "You cannot post in this discussion.");

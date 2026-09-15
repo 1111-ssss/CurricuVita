@@ -132,7 +132,7 @@ public class GetCvDetailHandler : IRequestHandler<GetCvDetailQuery, Result<CvDet
             position.MaxProjectCount,
             cv.Likes.Count,
             cv.Likes.Any(l => l.RecruiterId == request.RequesterUserId),
-            request.CanLike)
+            request.IsAdmin || request.IsRecruiter)
         );
     }
 }

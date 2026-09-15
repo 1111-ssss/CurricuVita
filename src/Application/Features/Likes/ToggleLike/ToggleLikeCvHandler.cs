@@ -23,7 +23,7 @@ public class ToggleLikeCvHandler : IRequestHandler<ToggleLikeCvCommand, Result<T
 
     public async Task<Result<ToggleLikeCvResponse>> Handle(ToggleLikeCvCommand request, CancellationToken cancellationToken)
     {
-        if (!request.CanLike)
+        if (!request.IsRecruiter && !request.IsAdmin)
         {
             return Result<ToggleLikeCvResponse>.Failure(Errors.LikeForbidden);
         }

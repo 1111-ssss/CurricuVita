@@ -8,7 +8,8 @@ public sealed class LatestPositionsSpec : Specification<Position, HomePositionIt
 {
     public LatestPositionsSpec(int take = 10)
     {
-        Query.OrderByDescending(p => p.CreatedAt)
+        Query.OrderByDescending(p => p.UpdatedAt)
+            .ThenByDescending(p => p.CreatedAt)
             .Take(take);
 
         Query.Select(p => new HomePositionItemDto(

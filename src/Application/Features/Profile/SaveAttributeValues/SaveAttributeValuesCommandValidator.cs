@@ -11,6 +11,11 @@ public class SaveAttributeValuesCommandValidator : AbstractValidator<SaveAttribu
             .WithMessage("User is required.")
             .WithErrorCode("ValidationFailed");
 
+        RuleFor(x => x.RequesterUserId)
+            .GreaterThan(0)
+            .WithMessage("User is required.")
+            .WithErrorCode("ValidationFailed");
+
         RuleFor(x => x.Items)
             .NotNull()
             .WithMessage("Values are required.")

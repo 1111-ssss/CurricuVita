@@ -6,5 +6,6 @@ namespace Application.Features.Likes.ToggleLike;
 public record ToggleLikeCvCommand(
     int CvId,
     int RequesterUserId,
-    bool CanLike
+    bool IsRecruiter,
+    bool IsAdmin = false
 ) : IRequest<Result<ToggleLikeCvResponse>>;

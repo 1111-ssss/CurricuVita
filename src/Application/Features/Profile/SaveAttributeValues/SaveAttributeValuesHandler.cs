@@ -1,6 +1,7 @@
 using AutoMapper;
 using Domain.Contracts.AttributeContracts;
 using Domain.Interfaces.Database;
+using Domain.ResultPattern.Errors;
 using Domain.ResultPattern.Result;
 using Domain.Specifications.Profile;
 using MediatR;
@@ -26,6 +27,11 @@ public class SaveAttributeValuesHandler : IRequestHandler<SaveAttributeValuesCom
         CancellationToken cancellationToken
     )
     {
+        if (request.UserId != request.RequesterUserId && !request.IsAdmin)
+        {
+            return Result<List<ProfileAttributeValueDto>>.Failure(Errors.ProfileForbidden);
+        }
+
         if (request.Items.Count == 0)
         {
             var current = await _values.ListAsync(new UserAttributeValuesByUserSpec(request.UserId), cancellationToken);
