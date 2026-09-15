@@ -7,6 +7,7 @@ using Domain.Interfaces.Database;
 using Domain.ResultPattern.Errors;
 using Domain.ResultPattern.Result;
 using Domain.Specifications.Profile;
+using Domain.Helpers;
 using MediatR;
 
 namespace Application.Features.Profile.GetProfile;
@@ -46,11 +47,21 @@ public class GetProfileHandler : IRequestHandler<GetProfileQuery, Result<Profile
         var projects = await _projects.GetProjectsAsync(request.UserId, cancellationToken);
         var cvs = await _cvs.ListAsync(new CvsByUserSpec(request.UserId), cancellationToken);
 
+        var cvDtos = cvs.Select(c => new CvListItemDto(
+            c.Id,
+            c.PositionId,
+            c.Position.Title,
+            c.Status,
+            !PositionAccessEvaluator.HasAccess(c.Position, values),
+            c.CreatedAt,
+            c.UpdatedAt)
+        ).ToList();
+
         return Result<ProfileDto>.Success(new ProfileDto(
             _mapper.Map<MeDto>(user),
             _mapper.Map<List<ProfileAttributeValueDto>>(values),
             _mapper.Map<List<ProjectDto>>(projects),
-            _mapper.Map<List<CvListItemDto>>(cvs)
+            cvDtos
         ));
     }
 }
