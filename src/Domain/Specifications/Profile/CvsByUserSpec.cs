@@ -12,6 +12,7 @@ public sealed class CvsByUserSpec : Specification<CV>
             .Include(c => c.Position)
                 .ThenInclude(p => p.AccessRules)
                 .ThenInclude(r => r.AttributeDefinition)
+            .Include(c => c.Likes)
             .OrderByDescending(c => c.UpdatedAt);
     }
 }
