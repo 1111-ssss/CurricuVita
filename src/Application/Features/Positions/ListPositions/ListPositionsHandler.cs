@@ -24,7 +24,7 @@ public class ListPositionsHandler : IRequestHandler<ListPositionsQuery, Result<L
         var skip = Math.Max(request.Skip, 0);
 
         var items = await _positions.ListAsync(
-            new PositionSearchSpec(request.TitlePrefix, request.OnlyPublic, skip, take),
+            new PositionSearchSpec(request.TitlePrefix, request.OnlyPublic, skip, take, request.SearchText),
             cancellationToken
         );
 

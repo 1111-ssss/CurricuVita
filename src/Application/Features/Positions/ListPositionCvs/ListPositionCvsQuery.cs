@@ -5,5 +5,6 @@ using MediatR;
 namespace Application.Features.Positions.ListPositionCvs;
 
 public record ListPositionCvsQuery(
-    int PositionId
+    int PositionId,
+    string? SearchText = null
 ) : IRequest<Result<List<PositionCvListItemDto>>>;

@@ -33,7 +33,7 @@ public class ListPositionCvsHandler : IRequestHandler<ListPositionCvsQuery, Resu
             return Result<List<PositionCvListItemDto>>.Failure(Errors.PositionNotFound);
         }
 
-        var cvs = await _cvs.ListAsync(new PositionCvsSpec(request.PositionId), cancellationToken);
+        var cvs = await _cvs.ListAsync(new PositionCvsSpec(request.PositionId, request.SearchText), cancellationToken);
 
         return Result<List<PositionCvListItemDto>>.Success(
             cvs.Select(c => new PositionCvListItemDto(
