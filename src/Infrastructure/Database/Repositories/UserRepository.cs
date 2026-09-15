@@ -13,6 +13,25 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         _context = context;
     }
 
+    public async Task<int> CountUsersInRoleAsync(
+        string roleName,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var roleId = await _context.Roles
+            .Where(r => r.Name == roleName)
+            .Select(r => r.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (roleId == default)
+        {
+            return 0;
+        }
+
+        return await _context.UserRoles.CountAsync(
+            ur => ur.RoleId == roleId, cancellationToken);
+    }
+
     public async Task<bool> TrySaveWithConcurrencyAsync(
         User entity,
         int expectedVersion,
