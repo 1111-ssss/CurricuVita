@@ -130,7 +130,9 @@ public class GetCvDetailHandler : IRequestHandler<GetCvDetailQuery, Result<CvDet
             ).ToList(),
             requiredTags.OrderBy(t => t).ToList(),
             position.MaxProjectCount,
-            cv.Likes.Count)
+            cv.Likes.Count,
+            cv.Likes.Any(l => l.RecruiterId == request.RequesterUserId),
+            request.CanLike)
         );
     }
 }
