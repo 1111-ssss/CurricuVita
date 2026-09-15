@@ -10,4 +10,9 @@ public interface IUserRepository : IRepositoryBase<User>
         int expectedVersion,
         CancellationToken cancellationToken = default
     );
+
+    Task<int> CountUsersInRoleAsync(
+        string roleName,
+        CancellationToken cancellationToken = default
+    );
 }

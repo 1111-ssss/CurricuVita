@@ -20,5 +20,7 @@ public record CvDetailDto(
     List<CvProjectDto> Projects,
     List<string> PositionTags,
     int? MaxProjectCount,
-    int LikesCount
+    int LikesCount,
+    bool IsLikedByRequester,
+    bool CanLike
 );
