@@ -9,7 +9,7 @@ public class User : IdentityUser<int>, IEntity
     public string LastName { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
     public int Version { get; set; }
     public string? AvatarUrl { get; set; }
     public string? AvatarPublicId { get; set; }

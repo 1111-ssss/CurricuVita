@@ -77,6 +77,8 @@ public class UpdatePositionHandler : IRequestHandler<UpdatePositionCommand, Resu
 
         entity.Title = request.Title.Trim();
         entity.DescriptionMarkdown = request.DescriptionMarkdown?.Trim() ?? string.Empty;
+        entity.Company = string.IsNullOrWhiteSpace(request.Company) ? null : request.Company.Trim();
+        entity.Level = Domain.Constants.PositionLevels.Normalize(request.Level);
         entity.IsPublic = request.IsPublic;
         entity.MaxProjectCount = request.MaxProjectCount;
         entity.UpdatedAt = DateTime.UtcNow;

@@ -1,7 +1,6 @@
 using Domain.Contracts.PositionContracts;
 using Domain.Interfaces.Database;
 using Domain.ResultPattern.Result;
-using Domain.Specifications.Positions;
 using MediatR;
 
 namespace Application.Features.Positions.ListPositions;
@@ -23,8 +22,14 @@ public class ListPositionsHandler : IRequestHandler<ListPositionsQuery, Result<L
         var take = Math.Clamp(request.Take, 1, 200);
         var skip = Math.Max(request.Skip, 0);
 
-        var items = await _positions.ListAsync(
-            new PositionSearchSpec(request.TitlePrefix, request.OnlyPublic, skip, take, request.SearchText),
+        var items = await _positions.SearchPositionsAsync(
+            request.TitlePrefix,
+            request.OnlyPublic,
+            skip,
+            take,
+            request.SearchText,
+            request.Company,
+            request.Level,
             cancellationToken
         );
 

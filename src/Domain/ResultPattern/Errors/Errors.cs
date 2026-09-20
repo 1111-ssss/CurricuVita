@@ -26,6 +26,8 @@ public static class Errors
     public static Error PositionInvalidTitle = new(HttpStatusCode.BadRequest, "PositionInvalidTitle", "Title is required (max 250 chars).");
     public static Error PositionInvalidDescription = new(HttpStatusCode.BadRequest, "PositionInvalidDescription", "Description must be at most 5000 characters.");
     public static Error PositionInvalidMaxProjects = new(HttpStatusCode.BadRequest, "PositionInvalidMaxProjects", "Max projects must be between 1 and 50.");
+    public static Error PositionInvalidCompany = new(HttpStatusCode.BadRequest, "PositionInvalidCompany", "Company must be at most 200 characters.");
+    public static Error PositionInvalidLevel = new(HttpStatusCode.BadRequest, "PositionInvalidLevel", "Level must be one of: Junior, Middle, Senior, C-level.");
     public static Error PositionAttributeDuplicate = new(HttpStatusCode.BadRequest, "PositionAttributeDuplicate", "Each attribute can be added to a position only once.");
     public static Error PositionAttributeNotFound = new(HttpStatusCode.BadRequest, "PositionAttributeNotFound", "One of the selected attributes does not exist.");
     public static Error PositionAccessRuleInvalid = new(HttpStatusCode.BadRequest, "PositionAccessRuleInvalid", "Access rules must reference existing attributes and non-empty values.");

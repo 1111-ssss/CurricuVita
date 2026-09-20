@@ -9,6 +9,8 @@ public record UpdatePositionCommand(
     int Version,
     string Title,
     string DescriptionMarkdown,
+    string? Company,
+    string? Level,
     bool IsPublic,
     int? MaxProjectCount,
     List<PositionAttributeInput> Attributes,

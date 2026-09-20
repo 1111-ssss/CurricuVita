@@ -4,6 +4,8 @@ public record PositionDetailDto(
     int Id,
     string Title,
     string DescriptionMarkdown,
+    string? Company,
+    string? Level,
     bool IsPublic,
     int? MaxProjectCount,
     int Version,

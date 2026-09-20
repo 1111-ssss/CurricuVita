@@ -5,20 +5,30 @@ namespace Domain.Specifications.Positions;
 
 public sealed class PositionSearchSpec : Specification<Position, PositionListProjection>
 {
-    public PositionSearchSpec(string? titlePrefix, bool? onlyPublic, int skip, int take, string? searchText = null)
+    public PositionSearchSpec(
+        string? titlePrefix,
+        bool? onlyPublic,
+        int skip,
+        int take,
+        string? company = null,
+        string? level = null
+    )
     {
         if (!string.IsNullOrWhiteSpace(titlePrefix))
         {
             Query.Where(p => p.Title.StartsWith(titlePrefix));
         }
 
-        if (!string.IsNullOrWhiteSpace(searchText))
+        if (!string.IsNullOrWhiteSpace(company))
         {
-            var q = searchText.Trim().ToLower();
-            Query.Where(p =>
-                p.Title.ToLower().Contains(q) ||
-                p.DescriptionMarkdown.ToLower().Contains(q) ||
-                p.RequiredTags.Any(rt => rt.Tag.Name.ToLower().Contains(q)));
+            var c = company.Trim().ToLower();
+            Query.Where(p => p.Company != null && p.Company.ToLower().Contains(c));
+        }
+
+        if (!string.IsNullOrWhiteSpace(level))
+        {
+            var l = level.Trim();
+            Query.Where(p => p.Level == l);
         }
 
         if (onlyPublic == true)
@@ -33,6 +43,8 @@ public sealed class PositionSearchSpec : Specification<Position, PositionListPro
         Query.Select(p => new PositionListProjection(
             p.Id,
             p.Title,
+            p.Company,
+            p.Level,
             p.IsPublic,
             p.CreatedAt,
             p.UpdatedAt,

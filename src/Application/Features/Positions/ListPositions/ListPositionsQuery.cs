@@ -9,5 +9,7 @@ public record ListPositionsQuery(
     bool? OnlyPublic = null,
     int Take = 50,
     int Skip = 0,
-    string? SearchText = null
+    string? SearchText = null,
+    string? Company = null,
+    string? Level = null
 ) : IRequest<Result<List<PositionListItemDto>>>;

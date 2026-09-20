@@ -7,10 +7,10 @@ public class CV : IEntity
 {
     public int Id { get; set; }
     public int UserId { get; set; }
-    public User User { get; set; } = new();
+    public User User { get; set; } = null!;
 
     public int PositionId { get; set; }
-    public Position Position { get; set; } = new();
+    public Position Position { get; set; } = null!;
 
     public CvStatus Status { get; set; } = CvStatus.Draft;
 

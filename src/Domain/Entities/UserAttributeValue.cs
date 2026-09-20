@@ -6,10 +6,10 @@ public class UserAttributeValue : IEntity
 {
     public int Id { get; set; }
     public int UserId { get; set; }
-    public User User { get; set; } = new();
+    public User User { get; set; } = null!;
 
     public int AttributeDefinitionId { get; set; }
-    public AttributeDefinition AttributeDefinition { get; set; } = new();
+    public AttributeDefinition AttributeDefinition { get; set; } = null!;
 
     public string? StringValue { get; set; }
     public string? TextValue { get; set; }

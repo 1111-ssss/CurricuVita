@@ -1,6 +1,4 @@
-using Ardalis.Specification;
 using Domain.Contracts.PositionContracts;
-using Domain.Entities;
 using Domain.Interfaces.Database;
 using Domain.ResultPattern.Errors;
 using Domain.ResultPattern.Result;
@@ -12,15 +10,10 @@ namespace Application.Features.Positions.ListPositionCvs;
 public class ListPositionCvsHandler : IRequestHandler<ListPositionCvsQuery, Result<List<PositionCvListItemDto>>>
 {
     private readonly IPositionRepository _positions;
-    private readonly IRepositoryBase<CV> _cvs;
 
-    public ListPositionCvsHandler(
-        IPositionRepository positions,
-        IRepositoryBase<CV> cvs
-    )
+    public ListPositionCvsHandler(IPositionRepository positions)
     {
         _positions = positions;
-        _cvs = cvs;
     }
 
     public async Task<Result<List<PositionCvListItemDto>>> Handle(
@@ -33,7 +26,7 @@ public class ListPositionCvsHandler : IRequestHandler<ListPositionCvsQuery, Resu
             return Result<List<PositionCvListItemDto>>.Failure(Errors.PositionNotFound);
         }
 
-        var cvs = await _cvs.ListAsync(new PositionCvsSpec(request.PositionId, request.SearchText), cancellationToken);
+        var cvs = await _positions.SearchPositionCvsAsync(request.PositionId, request.SearchText, cancellationToken);
 
         return Result<List<PositionCvListItemDto>>.Success(
             cvs.Select(c => new PositionCvListItemDto(

@@ -7,6 +7,8 @@ namespace Application.Features.Positions.CreatePosition;
 public record CreatePositionCommand(
     string Title,
     string DescriptionMarkdown,
+    string? Company,
+    string? Level,
     bool IsPublic,
     int? MaxProjectCount,
     List<PositionAttributeInput> Attributes,

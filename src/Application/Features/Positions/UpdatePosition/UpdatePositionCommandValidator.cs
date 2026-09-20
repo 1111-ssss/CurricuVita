@@ -20,6 +20,14 @@ public class UpdatePositionCommandValidator : AbstractValidator<UpdatePositionCo
             .MaximumLength(5000)
             .WithErrorCode("PositionInvalidDescription");
 
+        RuleFor(x => x.Company)
+            .MaximumLength(200)
+            .WithErrorCode("PositionInvalidCompany");
+
+        RuleFor(x => x.Level)
+            .Must(l => string.IsNullOrWhiteSpace(l) || Domain.Constants.PositionLevels.All.Contains(l.Trim(), StringComparer.OrdinalIgnoreCase))
+            .WithErrorCode("PositionInvalidLevel");
+
         RuleFor(x => x.MaxProjectCount)
             .Must(v => v is null || (v >= 1 && v <= 50))
             .WithErrorCode("PositionInvalidMaxProjects");

@@ -5,6 +5,8 @@ namespace Domain.Specifications.Positions;
 public record PositionListProjection(
     int Id,
     string Title,
+    string? Company,
+    string? Level,
     bool IsPublic,
     DateTime CreatedAt,
     DateTime UpdatedAt,
@@ -16,6 +18,8 @@ public record PositionListProjection(
     public PositionListItemDto ToDto() => new(
         Id,
         Title,
+        Company,
+        Level,
         IsPublic,
         CreatedAt,
         UpdatedAt,

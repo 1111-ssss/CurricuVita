@@ -49,6 +49,8 @@ public class CreatePositionHandler : IRequestHandler<CreatePositionCommand, Resu
 
         var title = request.Title?.Trim() ?? string.Empty;
         var description = request.DescriptionMarkdown?.Trim() ?? string.Empty;
+        var company = string.IsNullOrWhiteSpace(request.Company) ? null : request.Company.Trim();
+        var level = Domain.Constants.PositionLevels.Normalize(request.Level);
         var attributes = request.Attributes ?? new();
         var rules = request.AccessRules ?? new();
         var tags = TagHelper.NormalizeTags(request.Tags);
@@ -77,6 +79,8 @@ public class CreatePositionHandler : IRequestHandler<CreatePositionCommand, Resu
         {
             Title = title,
             DescriptionMarkdown = description,
+            Company = company,
+            Level = level,
             IsPublic = request.IsPublic,
             MaxProjectCount = request.MaxProjectCount,
             CreatedAt = now,
