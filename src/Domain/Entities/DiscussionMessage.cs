@@ -6,9 +6,9 @@ public class DiscussionMessage : IEntity
 {
     public int Id { get; set; }
     public int PositionId { get; set; }
-    public Position Position { get; set; } = new();
+    public Position Position { get; set; } = null!;
     public int AuthorId { get; set; }
-    public User Author { get; set; } = new();
+    public User Author { get; set; } = null!;
     public string ContentMarkdown { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }

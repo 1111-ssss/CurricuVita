@@ -123,6 +123,11 @@ namespace Infrastructure.Migrations
                     b.Property<int>("PositionId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -210,6 +215,10 @@ namespace Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Company")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -222,6 +231,10 @@ namespace Infrastructure.Migrations
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Level")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<int?>("MaxProjectCount")
                         .HasColumnType("integer");
@@ -240,9 +253,13 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Company");
+
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("CreatedById");
+
+                    b.HasIndex("Level");
 
                     b.HasIndex("Title");
 
@@ -847,7 +864,7 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Tag", "Tag")
-                        .WithMany()
+                        .WithMany("PositionTags")
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -877,7 +894,7 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Tag", "Tag")
-                        .WithMany()
+                        .WithMany("ProjectTags")
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1004,6 +1021,13 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Project", b =>
                 {
                     b.Navigation("Tags");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Tag", b =>
+                {
+                    b.Navigation("PositionTags");
+
+                    b.Navigation("ProjectTags");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

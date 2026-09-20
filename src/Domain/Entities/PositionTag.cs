@@ -6,7 +6,7 @@ public class PositionTag : IEntity
 {
     public int Id { get; set; }
     public int PositionId { get; set; }
-    public Position Position { get; set; } = new();
+    public Position Position { get; set; } = null!;
     public int TagId { get; set; }
-    public Tag Tag { get; set; } = new();
+    public Tag Tag { get; set; } = null!;
 }

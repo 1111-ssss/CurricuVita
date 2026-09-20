@@ -1,5 +1,5 @@
 using Domain.Constants;
-using Domain.Contracts;
+using Domain.Contracts.UserContracts;
 using Domain.ResultPattern.Result;
 
 namespace Domain.Interfaces.Services;

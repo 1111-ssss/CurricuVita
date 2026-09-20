@@ -10,9 +10,13 @@ public class PositionConfiguration : IEntityTypeConfiguration<Position>
     {
         builder.Property(p => p.Title).HasMaxLength(250).IsRequired();
         builder.Property(p => p.DescriptionMarkdown).HasColumnType("text");
+        builder.Property(p => p.Company).HasMaxLength(200);
+        builder.Property(p => p.Level).HasMaxLength(50);
         builder.Property(p => p.Version).IsConcurrencyToken();
 
         builder.HasIndex(p => p.Title);
+        builder.HasIndex(p => p.Company);
+        builder.HasIndex(p => p.Level);
         builder.HasIndex(p => p.CreatedAt);
         builder.HasIndex(p => p.UpdatedAt);
 

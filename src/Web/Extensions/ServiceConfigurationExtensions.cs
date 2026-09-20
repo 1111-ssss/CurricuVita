@@ -1,7 +1,9 @@
 using Application;
+using Application.Behaviors;
 using Domain.Interfaces.Services;
 using Domain.Options;
 using FluentEmail.MailKitSmtp;
+using FluentValidation;
 using Infrastructure.Interfaces;
 using Infrastructure.Services;
 using Web.BackgroundServices;
@@ -14,6 +16,9 @@ public static class ServiceConfigurationExtensions
     public static IServiceCollection AddServiceConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         // Options
+        services.Configure<AppOptions>(
+            configuration.GetSection(AppOptions.SectionName)
+        );
         services.Configure<CloudinaryOptions>(
             configuration.GetSection(CloudinaryOptions.SectionName)
         );
@@ -40,9 +45,18 @@ public static class ServiceConfigurationExtensions
         // Logging
         services.AddLogging();
         
-        // MediatR
+        // MediatR, FluentValidation
+        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly)
+        {
+            cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly);
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+        });
+
+        // AutoMapper
+        services.AddAutoMapper(
+            cfg => {},
+            typeof(AssemblyMarker).Assembly
         );
 
         // Services

@@ -1,4 +1,4 @@
-using Domain.Contracts;
+using Domain.Contracts.UserContracts;
 
 namespace Domain.Interfaces.Services;
 
