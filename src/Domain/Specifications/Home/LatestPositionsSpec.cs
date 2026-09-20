@@ -13,6 +13,7 @@ public sealed class LatestPositionsSpec : Specification<Position, HomePositionIt
             .Take(take);
 
         Query.Select(p => new HomePositionItemDto(
-            p.Id, p.Title, p.Company, p.Level, p.IsPublic, p.CreatedAt, p.UpdatedAt, p.CVs.Count));
+            p.Id, p.Title, p.Company, p.Level, p.IsPublic, p.CreatedAt, p.UpdatedAt, p.CVs.Count)
+        );
     }
 }
