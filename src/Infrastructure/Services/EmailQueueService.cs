@@ -1,5 +1,5 @@
 using System.Threading.Channels;
-using Domain.Contracts;
+using Domain.Contracts.UserContracts;
 using Domain.Interfaces.Services;
 using Infrastructure.Constants;
 

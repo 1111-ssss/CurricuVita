@@ -16,7 +16,7 @@ public class ProjectTagConfiguration : IEntityTypeConfiguration<ProjectTag>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(pt => pt.Tag)
-            .WithMany()
+            .WithMany(t => t.ProjectTags)
             .HasForeignKey(pt => pt.TagId)
             .OnDelete(DeleteBehavior.Cascade);
     }

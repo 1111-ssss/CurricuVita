@@ -17,7 +17,7 @@ public class PositionTagConfiguration : IEntityTypeConfiguration<PositionTag>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(pt => pt.Tag)
-            .WithMany()
+            .WithMany(t => t.PositionTags)
             .HasForeignKey(pt => pt.TagId)
             .OnDelete(DeleteBehavior.Cascade);
     }

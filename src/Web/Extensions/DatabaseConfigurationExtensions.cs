@@ -15,7 +15,11 @@ public static class DatabaseConfigurationExtensions
 
         services.AddScoped(typeof(IRepositoryBase<>), typeof(BaseRepository<>));
 
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IAttributeRepository, AttributeRepository>();
+        services.AddScoped<IUserAttributeValueRepository, UserAttributeValueRepository>();
+        services.AddScoped<IPositionRepository, PositionRepository>();
 
         services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
 

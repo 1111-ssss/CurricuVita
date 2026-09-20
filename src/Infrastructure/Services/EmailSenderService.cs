@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using MailKit.Security;
 using MailKit.Net.Smtp;
-using Domain.Contracts;
+using Domain.Contracts.UserContracts;
 
 namespace Infrastructure.Services;
 

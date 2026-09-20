@@ -15,6 +15,9 @@ public class CVConfiguration : IEntityTypeConfiguration<CV>
 
         builder.Property(c => c.Version).IsConcurrencyToken();
 
+        builder.Property(c => c.Status)
+            .HasDefaultValue(Domain.Enums.CvStatus.Draft);
+
         builder.HasOne(c => c.User)
             .WithMany(u => u.CVs)
             .HasForeignKey(c => c.UserId)
