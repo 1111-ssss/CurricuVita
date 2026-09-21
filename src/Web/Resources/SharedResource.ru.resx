@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -7,10 +7,12 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="App_Name" xml:space="preserve"><value>CurricuVita</value></data>
   <data name="Nav_Home" xml:space="preserve"><value>Главная</value></data>
@@ -374,4 +376,34 @@
   <data name="Pos_AggMin" xml:space="preserve"><value>Мин</value></data>
   <data name="Pos_AggMax" xml:space="preserve"><value>Макс</value></data>
   <data name="Pos_AggEmpty" xml:space="preserve"><value>Числовых данных для агрегации пока нет.</value></data>
+  <data name="Nav_Users" xml:space="preserve"><value>Пользователи</value></data>
+  <data name="Admin_Title" xml:space="preserve"><value>Управление пользователями</value></data>
+  <data name="Admin_Heading" xml:space="preserve"><value>Пользователи</value></data>
+  <data name="Admin_Lead" xml:space="preserve"><value>Просмотр, блокировка, удаление пользователей и управление ролями.</value></data>
+  <data name="Admin_SearchLabel" xml:space="preserve"><value>Поиск</value></data>
+  <data name="Admin_SearchPlaceholder" xml:space="preserve"><value>Email или имя...</value></data>
+  <data name="Admin_SearchButton" xml:space="preserve"><value>Найти</value></data>
+  <data name="Admin_ClearButton" xml:space="preserve"><value>Очистить</value></data>
+  <data name="Admin_Loading" xml:space="preserve"><value>Загрузка...</value></data>
+  <data name="Admin_Empty" xml:space="preserve"><value>Пользователи не найдены.</value></data>
+  <data name="Admin_Unexpected" xml:space="preserve"><value>Непредвиденная ошибка.</value></data>
+  <data name="Admin_SelectAll" xml:space="preserve"><value>Выбрать все</value></data>
+  <data name="Admin_Selected" xml:space="preserve"><value>Выбрано</value></data>
+  <data name="Admin_Block" xml:space="preserve"><value>Заблокировать</value></data>
+  <data name="Admin_Unblock" xml:space="preserve"><value>Разблокировать</value></data>
+  <data name="Admin_Delete" xml:space="preserve"><value>Удалить</value></data>
+  <data name="Admin_DeleteConfirm" xml:space="preserve"><value>Удалить выбранных пользователей? Связанные данные удалятся каскадно.</value></data>
+  <data name="Admin_ConfirmYes" xml:space="preserve"><value>Да, удалить</value></data>
+  <data name="Admin_Cancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="Admin_Roles" xml:space="preserve"><value>Роли</value></data>
+  <data name="Admin_ApplyRoles" xml:space="preserve"><value>Применить роли</value></data>
+  <data name="Admin_ColEmail" xml:space="preserve"><value>Email</value></data>
+  <data name="Admin_ColName" xml:space="preserve"><value>Имя</value></data>
+  <data name="Admin_ColRoles" xml:space="preserve"><value>Роли</value></data>
+  <data name="Admin_ColStatus" xml:space="preserve"><value>Статус</value></data>
+  <data name="Admin_StatusBlocked" xml:space="preserve"><value>Заблокирован</value></data>
+  <data name="Admin_StatusActive" xml:space="preserve"><value>Активен</value></data>
+  <data name="Admin_RoleCandidate" xml:space="preserve"><value>Кандидат</value></data>
+  <data name="Admin_RoleRecruiter" xml:space="preserve"><value>Рекрутер</value></data>
+  <data name="Admin_RoleAdmin" xml:space="preserve"><value>Админ</value></data>
 </root>

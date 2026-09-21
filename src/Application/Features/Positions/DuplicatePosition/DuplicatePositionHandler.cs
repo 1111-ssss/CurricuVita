@@ -94,6 +94,7 @@ public class DuplicatePositionHandler : IRequestHandler<DuplicatePositionCommand
 
         return reloaded is null
             ? Result<PositionDetailDto>.Failure(Errors.PositionNotFound)
-            : Result<PositionDetailDto>.Success(_mapper.Map<PositionDetailDto>(reloaded));
+            : Result<PositionDetailDto>.Success(_mapper.Map<PositionDetailDto>(reloaded)
+        );
     }
 }
