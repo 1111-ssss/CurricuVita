@@ -1,0 +1,409 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="App_Name" xml:space="preserve"><value>CurricuVita</value></data>
+  <data name="Nav_Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Nav_SignIn" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Nav_SignUp" xml:space="preserve"><value>Sign up</value></data>
+  <data name="Nav_SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Nav_Toggle" xml:space="preserve"><value>Toggle navigation</value></data>
+  <data name="Culture_Label" xml:space="preserve"><value>Language</value></data>
+  <data name="Culture_English" xml:space="preserve"><value>English</value></data>
+  <data name="Culture_Russian" xml:space="preserve"><value>Русский</value></data>
+  <data name="Theme_Label" xml:space="preserve"><value>Theme</value></data>
+  <data name="Theme_Mode" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Theme_Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Theme_Dark" xml:space="preserve"><value>Dark</value></data>
+  <data name="Theme_Auto" xml:space="preserve"><value>System</value></data>
+  <data name="Theme_Accent" xml:space="preserve"><value>Color</value></data>
+  <data name="Theme_Accent_Blue" xml:space="preserve"><value>Blue</value></data>
+  <data name="Theme_Accent_Indigo" xml:space="preserve"><value>Indigo</value></data>
+  <data name="Theme_Accent_Teal" xml:space="preserve"><value>Teal</value></data>
+  <data name="Theme_Accent_Rose" xml:space="preserve"><value>Rose</value></data>
+  <data name="Theme_Accent_Amber" xml:space="preserve"><value>Amber</value></data>
+  <data name="ErrorUi_Unhandled" xml:space="preserve"><value>An unhandled error has occurred.</value></data>
+  <data name="ErrorUi_Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="ErrorUi_Dismiss" xml:space="preserve"><value>Dismiss</value></data>
+  <data name="Reconnect_First" xml:space="preserve"><value>Rejoining the server...</value></data>
+  <data name="Reconnect_RetryBefore" xml:space="preserve"><value>Rejoin failed... trying again in</value></data>
+  <data name="Reconnect_RetryAfter" xml:space="preserve"><value>seconds.</value></data>
+  <data name="Reconnect_Failed" xml:space="preserve"><value>Failed to rejoin. Please retry or reload the page.</value></data>
+  <data name="Reconnect_RetryButton" xml:space="preserve"><value>Retry</value></data>
+  <data name="Reconnect_Paused" xml:space="preserve"><value>The session has been paused by the server.</value></data>
+  <data name="Reconnect_ResumeFailed" xml:space="preserve"><value>Failed to resume the session. Please retry or reload the page.</value></data>
+  <data name="Reconnect_Resume" xml:space="preserve"><value>Resume</value></data>
+  <data name="Home_Title" xml:space="preserve"><value>Home</value></data>
+  <data name="Home_Heading" xml:space="preserve"><value>Welcome to CurricuVita</value></data>
+  <data name="Home_Lead" xml:space="preserve"><value>Build and share your professional profile.</value></data>
+  <data name="Login_Title" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Login_Heading" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Login_Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Login_Password" xml:space="preserve"><value>Password</value></data>
+  <data name="Login_Submit" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Login_RegisterLink" xml:space="preserve"><value>Create an account</value></data>
+  <data name="Login_Failed" xml:space="preserve"><value>Invalid login attempt.</value></data>
+  <data name="Login_Unexpected" xml:space="preserve"><value>Something went wrong. Please try again.</value></data>
+  <data name="Register_Title" xml:space="preserve"><value>Sign up</value></data>
+  <data name="Register_Heading" xml:space="preserve"><value>Sign up</value></data>
+  <data name="Register_FirstName" xml:space="preserve"><value>First name</value></data>
+  <data name="Register_LastName" xml:space="preserve"><value>Last name</value></data>
+  <data name="Register_Location" xml:space="preserve"><value>Location</value></data>
+  <data name="Register_Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Register_Password" xml:space="preserve"><value>Password</value></data>
+  <data name="Register_Submit" xml:space="preserve"><value>Sign up</value></data>
+  <data name="Register_LoginLink" xml:space="preserve"><value>Already have an account? Sign in</value></data>
+  <data name="Register_Failed" xml:space="preserve"><value>Invalid registration attempt.</value></data>
+  <data name="Register_Unexpected" xml:space="preserve"><value>Something went wrong. Please try again.</value></data>
+  <data name="Validation_Required" xml:space="preserve"><value>This field is required.</value></data>
+  <data name="Validation_Email" xml:space="preserve"><value>Please enter a valid email address.</value></data>
+  <data name="Error_Title" xml:space="preserve"><value>Error</value></data>
+  <data name="Error_Heading" xml:space="preserve"><value>Error.</value></data>
+  <data name="Error_Subheading" xml:space="preserve"><value>An error occurred while processing your request.</value></data>
+  <data name="Error_RequestId" xml:space="preserve"><value>Request ID:</value></data>
+  <data name="Error_DevHeading" xml:space="preserve"><value>Development Mode</value></data>
+  <data name="Error_DevSwap" xml:space="preserve"><value>Swapping to the Development environment will display more detailed information about the error that occurred.</value></data>
+  <data name="Error_DevWarning" xml:space="preserve"><value>The Development environment shouldn't be enabled for deployed applications. It can result in displaying sensitive information from exceptions to end users.</value></data>
+  <data name="Error_DevHow" xml:space="preserve"><value>For local debugging, enable the Development environment by setting the ASPNETCORE_ENVIRONMENT environment variable to Development and restarting the app.</value></data>
+  <data name="NotFound_Title" xml:space="preserve"><value>Not found</value></data>
+  <data name="NotFound_Heading" xml:space="preserve"><value>Not found</value></data>
+  <data name="NotFound_Message" xml:space="preserve"><value>Sorry, the content you are looking for does not exist.</value></data>
+  <data name="Errors_ExternalLoginError" xml:space="preserve"><value>External login failed.</value></data>
+  <data name="Errors_InvalidCredentials" xml:space="preserve"><value>Invalid email or password.</value></data>
+  <data name="Errors_EmailNotConfirmed" xml:space="preserve"><value>Please confirm your email before signing in.</value></data>
+  <data name="Errors_UserLockedOut" xml:space="preserve"><value>This account is locked. Try again later.</value></data>
+  <data name="Errors_LoginNotAllowed" xml:space="preserve"><value>Sign in is not allowed for this account.</value></data>
+  <data name="Errors_Unauthorized" xml:space="preserve"><value>You are not authorized to perform this action.</value></data>
+  <data name="Errors_NotFound" xml:space="preserve"><value>The requested resource was not found.</value></data>
+  <data name="Errors_UserNotFound" xml:space="preserve"><value>User was not found.</value></data>
+  <data name="Errors_AvatarUploadError" xml:space="preserve"><value>Failed to upload the avatar.</value></data>
+  <data name="Errors_EmailConfirmationTokenAlreadySent" xml:space="preserve"><value>A confirmation email has already been sent.</value></data>
+  <data name="Errors_AttributeNotFound" xml:space="preserve"><value>Attribute not found.</value></data>
+  <data name="Errors_AttributeNameDuplicate" xml:space="preserve"><value>An attribute with this name already exists.</value></data>
+  <data name="Errors_AttributeProtected" xml:space="preserve"><value>System attributes (Me) cannot be deleted.</value></data>
+  <data name="Errors_AttributeInvalidOptions" xml:space="preserve"><value>Dropdown attributes require at least one option; other types must not have options.</value></data>
+  <data name="Errors_ConcurrencyConflict" xml:space="preserve"><value>The record was modified by another user. Reload and try again.</value></data>
+  <data name="Errors_AttributeInvalidCategory" xml:space="preserve"><value>Category is required (max 100 chars).</value></data>
+  <data name="Errors_AttributeInvalidName" xml:space="preserve"><value>Name is required (max 150 chars).</value></data>
+  <data name="Errors_AttributeInvalidDescription" xml:space="preserve"><value>Description must be at most 1000 characters.</value></data>
+  <data name="Errors_ValidationFailed" xml:space="preserve"><value>Validation failed.</value></data>
+  <data name="Errors_EmailConfirmationLinkFailed" xml:space="preserve"><value>Could not prepare the email confirmation link. Please contact support.</value></data>
+  <data name="Nav_Attributes" xml:space="preserve"><value>Attributes</value></data>
+  <data name="Attr_Title" xml:space="preserve"><value>Attribute library</value></data>
+  <data name="Attr_Heading" xml:space="preserve"><value>Attribute library</value></data>
+  <data name="Attr_Lead" xml:space="preserve"><value>Reusable attributes shared by vacancies and resumes.</value></data>
+  <data name="Attr_SearchLabel" xml:space="preserve"><value>Name starts with</value></data>
+  <data name="Attr_SearchPlaceholder" xml:space="preserve"><value>Prefix, e.g. Eng…</value></data>
+  <data name="Attr_CategoryLabel" xml:space="preserve"><value>Category</value></data>
+  <data name="Attr_CategoryAll" xml:space="preserve"><value>All categories</value></data>
+  <data name="Attr_SearchButton" xml:space="preserve"><value>Search</value></data>
+  <data name="Attr_ClearButton" xml:space="preserve"><value>Clear</value></data>
+  <data name="Attr_RecentHeading" xml:space="preserve"><value>Recently used</value></data>
+  <data name="Attr_ColName" xml:space="preserve"><value>Name</value></data>
+  <data name="Attr_ColCategory" xml:space="preserve"><value>Category</value></data>
+  <data name="Attr_ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="Attr_ColDescription" xml:space="preserve"><value>Description</value></data>
+  <data name="Attr_ColUsage" xml:space="preserve"><value>Used in</value></data>
+  <data name="Attr_Create" xml:space="preserve"><value>Create</value></data>
+  <data name="Attr_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Attr_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Attr_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Attr_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Attr_Back" xml:space="preserve"><value>Back to list</value></data>
+  <data name="Attr_Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="Attr_CreateTitle" xml:space="preserve"><value>Create attribute</value></data>
+  <data name="Attr_EditTitle" xml:space="preserve"><value>Edit attribute</value></data>
+  <data name="Attr_FieldCategory" xml:space="preserve"><value>Category</value></data>
+  <data name="Attr_FieldName" xml:space="preserve"><value>Name</value></data>
+  <data name="Attr_FieldDescription" xml:space="preserve"><value>Description</value></data>
+  <data name="Attr_FieldType" xml:space="preserve"><value>Data type</value></data>
+  <data name="Attr_FieldOptions" xml:space="preserve"><value>Dropdown options</value></data>
+  <data name="Attr_OptionsHint" xml:space="preserve"><value>One option per line. Required for Dropdown, hidden for other types.</value></data>
+  <data name="Attr_TypeLockedHint" xml:space="preserve"><value>Data type cannot be changed after creation (stored values depend on it).</value></data>
+  <data name="Attr_ImageHint" xml:space="preserve"><value>Image values are stored as cloud URLs (see FileStorageService).</value></data>
+  <data name="Attr_DeleteConfirm" xml:space="preserve"><value>Delete the selected attributes? Related values will be removed by cascade delete.</value></data>
+  <data name="Attr_ConfirmYes" xml:space="preserve"><value>Yes, delete</value></data>
+  <data name="Attr_SelectOne" xml:space="preserve"><value>Select exactly one row to edit.</value></data>
+  <data name="Attr_SelectAny" xml:space="preserve"><value>Select at least one row to delete.</value></data>
+  <data name="Attr_Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Attr_Empty" xml:space="preserve"><value>No attributes found.</value></data>
+  <data name="Attr_Unexpected" xml:space="preserve"><value>Something went wrong. Please try again.</value></data>
+  <data name="Nav_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Profile_Title" xml:space="preserve"><value>Profile</value></data>
+  <data name="Profile_Heading" xml:space="preserve"><value>Candidate profile</value></data>
+  <data name="Profile_Lead" xml:space="preserve"><value>Your attributes, projects and resumes in one place.</value></data>
+  <data name="Profile_Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Profile_Unexpected" xml:space="preserve"><value>Something went wrong. Please try again.</value></data>
+  <data name="Profile_Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="Profile_MeHeading" xml:space="preserve"><value>Me</value></data>
+  <data name="Profile_FirstName" xml:space="preserve"><value>First name</value></data>
+  <data name="Profile_LastName" xml:space="preserve"><value>Last name</value></data>
+  <data name="Profile_Location" xml:space="preserve"><value>Location</value></data>
+  <data name="Profile_Avatar" xml:space="preserve"><value>Photo</value></data>
+  <data name="Profile_AvatarHint" xml:space="preserve"><value>Uploaded to cloud storage.</value></data>
+  <data name="Profile_InfoHeading" xml:space="preserve"><value>Info</value></data>
+  <data name="Profile_InfoLead" xml:space="preserve"><value>Attributes from the library. Changes save automatically.</value></data>
+  <data name="Profile_AddAttribute" xml:space="preserve"><value>Add attribute</value></data>
+  <data name="Profile_SelectAttribute" xml:space="preserve"><value>Select…</value></data>
+  <data name="Profile_Attach" xml:space="preserve"><value>Add</value></data>
+  <data name="Profile_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Profile_NoValues" xml:space="preserve"><value>No attributes yet. Add one from the library.</value></data>
+  <data name="Profile_ProjectsHeading" xml:space="preserve"><value>Projects</value></data>
+  <data name="Profile_ProjectsLead" xml:space="preserve"><value>Title, period, Markdown description and technology tags.</value></data>
+  <data name="Profile_Create" xml:space="preserve"><value>Create</value></data>
+  <data name="Profile_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Profile_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Profile_DeleteProjectConfirm" xml:space="preserve"><value>Delete the selected projects?</value></data>
+  <data name="Profile_ConfirmYes" xml:space="preserve"><value>Yes, delete</value></data>
+  <data name="Profile_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Profile_NoProjects" xml:space="preserve"><value>No projects yet.</value></data>
+  <data name="Profile_ColTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="Profile_ColPeriod" xml:space="preserve"><value>Period</value></data>
+  <data name="Profile_ColTags" xml:space="preserve"><value>Tags</value></data>
+  <data name="Profile_CvsHeading" xml:space="preserve"><value>CVs</value></data>
+  <data name="Profile_CvsLead" xml:space="preserve"><value>One resume per position. New resumes appear here once positions are available.</value></data>
+  <data name="Profile_NoCvs" xml:space="preserve"><value>No resumes yet.</value></data>
+  <data name="Profile_ColPosition" xml:space="preserve"><value>Position</value></data>
+  <data name="Profile_ColCreated" xml:space="preserve"><value>Created</value></data>
+  <data name="Profile_ColUpdated" xml:space="preserve"><value>Updated</value></data>
+  <data name="Profile_Saving" xml:space="preserve"><value>Saving…</value></data>
+  <data name="Profile_SavedAt" xml:space="preserve"><value>Saved</value></data>
+  <data name="Profile_SaveNow" xml:space="preserve"><value>Save now</value></data>
+  <data name="Profile_Unsaved" xml:space="preserve"><value>Unsaved changes</value></data>
+  <data name="Profile_Conflict" xml:space="preserve"><value>The profile was modified elsewhere. Reload to continue.</value></data>
+  <data name="Profile_SelectOne" xml:space="preserve"><value>Select exactly one row to edit.</value></data>
+  <data name="Profile_SelectAny" xml:space="preserve"><value>Select at least one row to delete.</value></data>
+  <data name="Profile_ProjectTitle" xml:space="preserve"><value>New project</value></data>
+  <data name="Profile_ProjectEditTitle" xml:space="preserve"><value>Edit project</value></data>
+  <data name="Profile_FieldTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="Profile_FieldStart" xml:space="preserve"><value>Start date</value></data>
+  <data name="Profile_FieldEnd" xml:space="preserve"><value>End date</value></data>
+  <data name="Profile_FieldDescription" xml:space="preserve"><value>Description (Markdown)</value></data>
+  <data name="Profile_FieldTags" xml:space="preserve"><value>Tags</value></data>
+  <data name="Profile_TagsHint" xml:space="preserve"><value>Comma-separated. Suggestions come from previously used tags.</value></data>
+  <data name="Profile_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Profile_Back" xml:space="preserve"><value>Back to profile</value></data>
+  <data name="Nav_Positions" xml:space="preserve"><value>Positions</value></data>
+  <data name="Pos_Title" xml:space="preserve"><value>Positions</value></data>
+  <data name="Pos_Heading" xml:space="preserve"><value>Positions</value></data>
+  <data name="Pos_Lead" xml:space="preserve"><value>Configurable vacancy templates for CV generation.</value></data>
+  <data name="Pos_SearchLabel" xml:space="preserve"><value>Title starts with</value></data>
+  <data name="Pos_SearchPlaceholder" xml:space="preserve"><value>Prefix, e.g. Junior…</value></data>
+  <data name="Pos_PublicOnly" xml:space="preserve"><value>Public only</value></data>
+  <data name="Pos_SearchButton" xml:space="preserve"><value>Search</value></data>
+  <data name="Pos_ClearButton" xml:space="preserve"><value>Clear</value></data>
+  <data name="Pos_Create" xml:space="preserve"><value>Create</value></data>
+  <data name="Pos_Duplicate" xml:space="preserve"><value>Duplicate</value></data>
+  <data name="Pos_Selected" xml:space="preserve"><value>Selected</value></data>
+  <data name="Pos_SelectAll" xml:space="preserve"><value>Select all</value></data>
+  <data name="Pos_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Pos_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Pos_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Pos_ConfirmYes" xml:space="preserve"><value>Yes, delete</value></data>
+  <data name="Pos_DeleteConfirm" xml:space="preserve"><value>Delete the selected positions? Related CVs will be removed by cascade delete.</value></data>
+  <data name="Pos_Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Pos_Empty" xml:space="preserve"><value>No positions found.</value></data>
+  <data name="Pos_Unexpected" xml:space="preserve"><value>Something went wrong. Please try again.</value></data>
+  <data name="Pos_SelectOne" xml:space="preserve"><value>Select exactly one row to edit.</value></data>
+  <data name="Pos_SelectAny" xml:space="preserve"><value>Select at least one row to delete.</value></data>
+  <data name="Pos_ColTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="Pos_ColVisibility" xml:space="preserve"><value>Visibility</value></data>
+  <data name="Pos_ColTags" xml:space="preserve"><value>Project tags</value></data>
+  <data name="Pos_ColAttrs" xml:space="preserve"><value>Attributes</value></data>
+  <data name="Pos_ColCvs" xml:space="preserve"><value>CVs</value></data>
+  <data name="Pos_ColUpdated" xml:space="preserve"><value>Updated</value></data>
+  <data name="Pos_Public" xml:space="preserve"><value>Public</value></data>
+  <data name="Pos_Private" xml:space="preserve"><value>Private</value></data>
+  <data name="Pos_CreateTitle" xml:space="preserve"><value>New position</value></data>
+  <data name="Pos_DetailTitle" xml:space="preserve"><value>Position</value></data>
+  <data name="Pos_FieldTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="Pos_FieldDescription" xml:space="preserve"><value>Description (Markdown)</value></data>
+  <data name="Pos_DescriptionHint" xml:space="preserve"><value>Markdown is supported. Shown to candidates.</value></data>
+  <data name="Pos_FieldPublic" xml:space="preserve"><value>Available to everyone</value></data>
+  <data name="Pos_PublicHint" xml:space="preserve"><value>If off, access is limited by the rules below.</value></data>
+  <data name="Pos_FieldMaxProjects" xml:space="preserve"><value>Max recent projects in CV</value></data>
+  <data name="Pos_MaxProjectsHint" xml:space="preserve"><value>Empty = all matching projects. 1–50.</value></data>
+  <data name="Pos_AttrsHeading" xml:space="preserve"><value>Required attributes</value></data>
+  <data name="Pos_AttrsLead" xml:space="preserve"><value>Pick attributes from the library. Tick Required for mandatory ones.</value></data>
+  <data name="Pos_NoLibrary" xml:space="preserve"><value>Attribute library is empty.</value></data>
+  <data name="Pos_ColAttr" xml:space="preserve"><value>Attribute</value></data>
+  <data name="Pos_ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="Pos_ColRequired" xml:space="preserve"><value>Required</value></data>
+  <data name="Pos_RulesHeading" xml:space="preserve"><value>Access rules</value></data>
+  <data name="Pos_RulesLead" xml:space="preserve"><value>Optional filters, e.g. IELTS &gt; 7.0 or Remote = true. Empty + public = visible to everyone.</value></data>
+  <data name="Pos_RuleAttr" xml:space="preserve"><value>Attribute</value></data>
+  <data name="Pos_RuleOp" xml:space="preserve"><value>Operator</value></data>
+  <data name="Pos_RuleValue" xml:space="preserve"><value>Value</value></data>
+  <data name="Pos_SelectAttr" xml:space="preserve"><value>Select…</value></data>
+  <data name="Pos_AddRule" xml:space="preserve"><value>Add rule</value></data>
+  <data name="Pos_RemoveRule" xml:space="preserve"><value>Remove rule</value></data>
+  <data name="Pos_PrivateNoRules" xml:space="preserve"><value>Private position without rules is visible to nobody. Add at least one rule or make it public.</value></data>
+  <data name="Pos_TagsHeading" xml:space="preserve"><value>Project filter</value></data>
+  <data name="Pos_FieldTags" xml:space="preserve"><value>Tags</value></data>
+  <data name="Pos_TagsHint" xml:space="preserve"><value>Comma-separated. Only the most recent matching projects get into a CV.</value></data>
+  <data name="Pos_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Pos_Back" xml:space="preserve"><value>Back to list</value></data>
+  <data name="Pos_Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="Pos_UpdatedAt" xml:space="preserve"><value>Updated</value></data>
+  <data name="Pos_CvsHeading" xml:space="preserve"><value>Generated CVs</value></data>
+  <data name="Pos_NoCvs" xml:space="preserve"><value>No CVs for this position yet.</value></data>
+  <data name="Pos_CvCandidate" xml:space="preserve"><value>Candidate</value></data>
+  <data name="Pos_CvLikes" xml:space="preserve"><value>Likes</value></data>
+  <data name="Pos_CvCreated" xml:space="preserve"><value>Created</value></data>
+  <data name="Pos_CvUpdated" xml:space="preserve"><value>Updated</value></data>
+  <data name="Errors_PositionNotFound" xml:space="preserve"><value>Position not found.</value></data>
+  <data name="Errors_PositionInvalidTitle" xml:space="preserve"><value>Title is required (max 250 chars).</value></data>
+  <data name="Errors_PositionInvalidDescription" xml:space="preserve"><value>Description must be at most 5000 characters.</value></data>
+  <data name="Errors_PositionInvalidMaxProjects" xml:space="preserve"><value>Max projects must be between 1 and 50.</value></data>
+  <data name="Errors_PositionAttributeDuplicate" xml:space="preserve"><value>Each attribute can be added to a position only once.</value></data>
+  <data name="Errors_PositionAttributeNotFound" xml:space="preserve"><value>One of the selected attributes does not exist.</value></data>
+  <data name="Errors_PositionAccessRuleInvalid" xml:space="preserve"><value>Access rules must reference existing attributes and non-empty values.</value></data>
+  <data name="Errors_CvNotFound" xml:space="preserve"><value>CV not found.</value></data>
+  <data name="Errors_CvAlreadyExists" xml:space="preserve"><value>Only one CV per position is allowed.</value></data>
+  <data name="Errors_CvAccessDenied" xml:space="preserve"><value>This position is not available for you.</value></data>
+  <data name="Errors_CvNotReady" xml:space="preserve"><value>All required attributes must be filled before publishing.</value></data>
+  <data name="Errors_CvForbidden" xml:space="preserve"><value>You cannot modify this CV.</value></data>
+  <data name="Profile_ColStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="Profile_Hidden" xml:space="preserve"><value>Hidden — access lost</value></data>
+  <data name="Profile_Published" xml:space="preserve"><value>Published</value></data>
+  <data name="Profile_Draft" xml:space="preserve"><value>Draft</value></data>
+  <data name="Pos_MyCvHeading" xml:space="preserve"><value>My CV for this position</value></data>
+  <data name="Pos_MyCvExists" xml:space="preserve"><value>You already have a CV for this position.</value></data>
+  <data name="Pos_MyCvLead" xml:space="preserve"><value>Create a resume generated from your profile.</value></data>
+  <data name="Pos_MyCvOpen" xml:space="preserve"><value>Open my CV</value></data>
+  <data name="Pos_MyCvCreate" xml:space="preserve"><value>Create CV</value></data>
+  <data name="Cv_Title" xml:space="preserve"><value>CV</value></data>
+  <data name="Cv_Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Cv_Unexpected" xml:space="preserve"><value>Something went wrong. Please try again.</value></data>
+  <data name="Cv_Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="Cv_Published" xml:space="preserve"><value>Published</value></data>
+  <data name="Cv_Draft" xml:space="preserve"><value>Draft</value></data>
+  <data name="Cv_UpdatedAt" xml:space="preserve"><value>Updated</value></data>
+  <data name="Cv_Hidden" xml:space="preserve"><value>Access to this position was lost. The CV is hidden from recruiters but not deleted.</value></data>
+  <data name="Cv_BackToPosition" xml:space="preserve"><value>Back to position</value></data>
+  <data name="Cv_BackToProfile" xml:space="preserve"><value>Back to profile</value></data>
+  <data name="Cv_Publish" xml:space="preserve"><value>Publish</value></data>
+  <data name="Cv_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Cv_DeleteConfirm" xml:space="preserve"><value>Delete this CV?</value></data>
+  <data name="Cv_ConfirmYes" xml:space="preserve"><value>Yes, delete</value></data>
+  <data name="Cv_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Cv_FillRequired" xml:space="preserve"><value>Fill all required attributes (highlighted in red) to publish. The CV becomes visible to recruiters only after publishing.</value></data>
+  <data name="Cv_PositionHeading" xml:space="preserve"><value>Position</value></data>
+  <data name="Cv_ProjectFilter" xml:space="preserve"><value>Project filter</value></data>
+  <data name="Cv_AttributesHeading" xml:space="preserve"><value>Attributes</value></data>
+  <data name="Cv_SaveNow" xml:space="preserve"><value>Save now</value></data>
+  <data name="Cv_Saving" xml:space="preserve"><value>Saving…</value></data>
+  <data name="Cv_Saved" xml:space="preserve"><value>Saved. Values are shared with your profile and all CVs.</value></data>
+  <data name="Cv_Conflict" xml:space="preserve"><value>The record was modified elsewhere. Reload to continue.</value></data>
+  <data name="Cv_Required" xml:space="preserve"><value>Required</value></data>
+  <data name="Cv_Empty" xml:space="preserve"><value>Empty</value></data>
+  <data name="Cv_Select" xml:space="preserve"><value>Select…</value></data>
+  <data name="Cv_ProjectsHeading" xml:space="preserve"><value>Projects</value></data>
+  <data name="Cv_ProjectsLead" xml:space="preserve"><value>Only the most recent projects matching the position tags.</value></data>
+  <data name="Cv_NoProjects" xml:space="preserve"><value>No matching projects.</value></data>
+  <data name="Cv_PublishedInfo" xml:space="preserve"><value>Published. Recruiters can now see this CV.</value></data>
+  <data name="Cv_DynamicHint" xml:space="preserve"><value>Dynamic CV: generated on the fly from your master profile. Editing here updates your profile and all your CVs. Only status and metadata are stored.</value></data>
+  <data name="Pos_DiscussionHeading" xml:space="preserve"><value>Discussion</value></data>
+  <data name="Pos_DiscussionLead" xml:space="preserve"><value>Chronological discussion. New messages appear every few seconds.</value></data>
+  <data name="Pos_DiscussionEmpty" xml:space="preserve"><value>No messages yet. Be the first.</value></data>
+  <data name="Pos_DiscussionNew" xml:space="preserve"><value>New message (Markdown)</value></data>
+  <data name="Pos_DiscussionSend" xml:space="preserve"><value>Send</value></data>
+  <data name="Pos_DiscussionSending" xml:space="preserve"><value>Sending...</value></data>
+  <data name="Pos_DiscussionSignIn" xml:space="preserve"><value>Sign in to participate in the discussion.</value></data>
+  <data name="Pos_CvSearchLabel" xml:space="preserve"><value>Search CVs</value></data>
+  <data name="Pos_CvSearchPlaceholder" xml:space="preserve"><value>Candidate name or email...</value></data>
+  <data name="Cv_Like" xml:space="preserve"><value>Like</value></data>
+  <data name="Cv_Unlike" xml:space="preserve"><value>Unlike</value></data>
+  <data name="User_Title" xml:space="preserve"><value>User</value></data>
+  <data name="User_Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="User_Unexpected" xml:space="preserve"><value>Something went wrong. Please try again.</value></data>
+  <data name="User_CvsHeading" xml:space="preserve"><value>Published resumes</value></data>
+  <data name="User_NoCvs" xml:space="preserve"><value>No published resumes.</value></data>
+  <data name="User_ColPosition" xml:space="preserve"><value>Position</value></data>
+  <data name="User_ColLikes" xml:space="preserve"><value>Likes</value></data>
+  <data name="User_ColUpdated" xml:space="preserve"><value>Updated</value></data>
+  <data name="Home_Browse" xml:space="preserve"><value>Browse positions</value></data>
+  <data name="Home_SearchLabel" xml:space="preserve"><value>Search positions</value></data>
+  <data name="Home_SearchPlaceholder" xml:space="preserve"><value>Title or description...</value></data>
+  <data name="Home_SearchButton" xml:space="preserve"><value>Search</value></data>
+  <data name="Home_Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="Home_StatPositions" xml:space="preserve"><value>Positions</value></data>
+  <data name="Home_StatCvs" xml:space="preserve"><value>Submitted CVs</value></data>
+  <data name="Home_StatUsers" xml:space="preserve"><value>Candidates / Recruiters</value></data>
+  <data name="Home_StatCandidates" xml:space="preserve"><value>Candidates</value></data>
+  <data name="Home_StatRecruiters" xml:space="preserve"><value>Recruiters</value></data>
+  <data name="Home_AllPositions" xml:space="preserve"><value>All positions</value></data>
+  <data name="Home_Stat24h" xml:space="preserve"><value>New CVs (24h)</value></data>
+  <data name="Home_LatestHeading" xml:space="preserve"><value>Latest positions</value></data>
+  <data name="Home_TopHeading" xml:space="preserve"><value>Top 5 popular</value></data>
+  <data name="Home_TagsHeading" xml:space="preserve"><value>Tag cloud</value></data>
+  <data name="Home_Empty" xml:space="preserve"><value>No positions yet.</value></data>
+  <data name="Home_NoTags" xml:space="preserve"><value>No tags yet.</value></data>
+  <data name="Home_ColTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="Home_ColCvs" xml:space="preserve"><value>CVs</value></data>
+  <data name="Home_ColUpdated" xml:space="preserve"><value>Updated</value></data>
+  <data name="Errors_DiscussionInvalidContent" xml:space="preserve"><value>Message text is required (max 5000 chars).</value></data>
+  <data name="Errors_DiscussionForbidden" xml:space="preserve"><value>You cannot post in this discussion.</value></data>
+  <data name="Errors_LikeForbidden" xml:space="preserve"><value>Only recruiters can like CVs.</value></data>
+  <data name="Errors_LikeNotFound" xml:space="preserve"><value>Like not found.</value></data>
+  <data name="Errors_DiscussionNotFound" xml:space="preserve"><value>Discussion message not found.</value></data>
+  <data name="Pos_FieldCompany" xml:space="preserve"><value>Company</value></data>
+  <data name="Pos_CompanyPlaceholder" xml:space="preserve"><value>e.g. Acme</value></data>
+  <data name="Pos_FieldLevel" xml:space="preserve"><value>Level</value></data>
+  <data name="Pos_LevelAny" xml:space="preserve"><value>Any level</value></data>
+  <data name="Errors_PositionInvalidCompany" xml:space="preserve"><value>Company must be at most 200 characters.</value></data>
+  <data name="Errors_PositionInvalidLevel" xml:space="preserve"><value>Level must be one of: Junior, Middle, Senior, C-level.</value></data>
+  <data name="Search_Label" xml:space="preserve"><value>Search</value></data>
+  <data name="Search_Placeholder" xml:space="preserve"><value>Search positions…</value></data>
+  <data name="Search_Button" xml:space="preserve"><value>Search</value></data>
+  <data name="Pos_AggregatesHeading" xml:space="preserve"><value>Aggregates across published CVs</value></data>
+  <data name="Pos_AggregatesLead" xml:space="preserve"><value>All CVs of this position share the same structure, so numeric attributes can be aggregated (e.g. average).</value></data>
+  <data name="Pos_AggAttr" xml:space="preserve"><value>Attribute</value></data>
+  <data name="Pos_AggCount" xml:space="preserve"><value>Count</value></data>
+  <data name="Pos_AggAverage" xml:space="preserve"><value>Average</value></data>
+  <data name="Pos_AggMin" xml:space="preserve"><value>Min</value></data>
+  <data name="Pos_AggMax" xml:space="preserve"><value>Max</value></data>
+  <data name="Pos_AggEmpty" xml:space="preserve"><value>No numeric data to aggregate yet.</value></data>
+  <data name="Nav_Users" xml:space="preserve"><value>Users</value></data>
+  <data name="Admin_Title" xml:space="preserve"><value>User management</value></data>
+  <data name="Admin_Heading" xml:space="preserve"><value>Users</value></data>
+  <data name="Admin_Lead" xml:space="preserve"><value>View, block, unblock, delete users and manage roles.</value></data>
+  <data name="Admin_SearchLabel" xml:space="preserve"><value>Search</value></data>
+  <data name="Admin_SearchPlaceholder" xml:space="preserve"><value>Email or name...</value></data>
+  <data name="Admin_SearchButton" xml:space="preserve"><value>Search</value></data>
+  <data name="Admin_ClearButton" xml:space="preserve"><value>Clear</value></data>
+  <data name="Admin_Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="Admin_Empty" xml:space="preserve"><value>No users found.</value></data>
+  <data name="Admin_Unexpected" xml:space="preserve"><value>Unexpected error.</value></data>
+  <data name="Admin_SelectAll" xml:space="preserve"><value>Select all</value></data>
+  <data name="Admin_Selected" xml:space="preserve"><value>Selected</value></data>
+  <data name="Admin_Block" xml:space="preserve"><value>Block</value></data>
+  <data name="Admin_Unblock" xml:space="preserve"><value>Unblock</value></data>
+  <data name="Admin_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Admin_DeleteConfirm" xml:space="preserve"><value>Delete selected users? Blocked relations will be removed by cascade.</value></data>
+  <data name="Admin_ConfirmYes" xml:space="preserve"><value>Yes, delete</value></data>
+  <data name="Admin_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Admin_Roles" xml:space="preserve"><value>Roles</value></data>
+  <data name="Admin_ApplyRoles" xml:space="preserve"><value>Apply roles</value></data>
+  <data name="Admin_ColEmail" xml:space="preserve"><value>Email</value></data>
+  <data name="Admin_ColName" xml:space="preserve"><value>Name</value></data>
+  <data name="Admin_ColRoles" xml:space="preserve"><value>Roles</value></data>
+  <data name="Admin_ColStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="Admin_StatusBlocked" xml:space="preserve"><value>Blocked</value></data>
+  <data name="Admin_StatusActive" xml:space="preserve"><value>Active</value></data>
+  <data name="Admin_RoleCandidate" xml:space="preserve"><value>Candidate</value></data>
+  <data name="Admin_RoleRecruiter" xml:space="preserve"><value>Recruiter</value></data>
+  <data name="Admin_RoleAdmin" xml:space="preserve"><value>Admin</value></data>
+</root>

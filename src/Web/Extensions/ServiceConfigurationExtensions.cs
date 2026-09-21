@@ -1,12 +1,87 @@
+using Application;
+using Application.Behaviors;
+using Domain.Interfaces.Services;
+using Domain.Options;
+using FluentEmail.MailKitSmtp;
+using FluentValidation;
+using Infrastructure.Interfaces;
+using Infrastructure.Services;
+using Web.BackgroundServices;
+using Web.Theming;
+
 namespace Web.Extensions;
 
 public static class ServiceConfigurationExtensions
 {
-    public static IServiceCollection AddServiceConfiguration(this IServiceCollection services)
+    public static IServiceCollection AddServiceConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
+        // Options
+        services.Configure<AppOptions>(
+            configuration.GetSection(AppOptions.SectionName)
+        );
+        services.Configure<CloudinaryOptions>(
+            configuration.GetSection(CloudinaryOptions.SectionName)
+        );
+        services.Configure<EmailSenderOptions>(
+            configuration.GetSection(EmailSenderOptions.SectionName)
+        );
+
+        // Razor Components
         services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        services.AddScoped<UiPreferencesState>();
+
+        services.AddLocalization();
+        services.Configure<RequestLocalizationOptions>(options =>
+        {
+            var supportedCultures = new[] { "en", "ru" };
+            options.SetDefaultCulture("en")
+                .AddSupportedCultures(supportedCultures)
+                .AddSupportedUICultures(supportedCultures);
+            options.ApplyCurrentCultureToResponseHeaders = true;
+        });
+
+        // Logging
+        services.AddLogging();
         
+        // MediatR, FluentValidation
+        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly);
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+        });
+
+        // AutoMapper
+        services.AddAutoMapper(
+            cfg => {},
+            typeof(AssemblyMarker).Assembly
+        );
+
+        // Services
+        services.AddScoped<IEmailSenderService, EmailSenderService>();
+        services.AddScoped<IFileStorageService, FileStorageService>();
+        services.AddSingleton<IEmailQueueService, EmailQueueService>();
+        services.AddSingleton<IEmailTemplateRenderer, FluidEmailTemplateRenderer>();
+
+        // Background Services
+        services.AddHostedService<EmailBackgroundService>();
+        
+        // Email Configuration
+        var emailSection = configuration.GetSection("EmailSender");
+        services
+            .AddFluentEmail(emailSection["From"])
+            .AddMailKitSender(new SmtpClientOptions
+            {
+                Server = emailSection["SmtpServer"],
+                Port = int.Parse(emailSection["Port"]!),
+                UseSsl = true,
+                RequiresAuthentication = true,
+                User = emailSection["From"],
+                Password = emailSection["Password"]
+            });
+
         return services;
     }
 }

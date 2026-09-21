@@ -1,0 +1,156 @@
+@page "/profile/projects/create"
+
+@using MediatR
+@using Application.Features.Projects.CreateProject
+@using Application.Features.Tags.GetTagSuggestions
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject ISender Sender
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Profile_ProjectTitle"]</PageTitle>
+
+<h1>@T["Profile_ProjectTitle"]</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="col-12 col-lg-8 col-xl-6">
+    <EditForm Model="model" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger mb-3" />
+
+        <div class="mb-3">
+            <label class="form-label">@T["Profile_FieldTitle"]</label>
+            <InputText @bind-Value="model.Title" class="form-control" maxlength="200" />
+        </div>
+
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label">@T["Profile_FieldStart"]</label>
+                <InputDate @bind-Value="model.StartDate" class="form-control" />
+            </div>
+            <div class="col-6">
+                <label class="form-label">@T["Profile_FieldEnd"]</label>
+                <InputDate @bind-Value="model.EndDate" class="form-control" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">@T["Profile_FieldDescription"]</label>
+            <InputTextArea @bind-Value="model.DescriptionMarkdown" class="form-control" rows="6" maxlength="20000" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="project-tags">@T["Profile_FieldTags"]</label>
+            <input id="project-tags" class="form-control" list="tag-suggestions"
+                @bind="model.TagsText" @bind:event="oninput" @onkeyup="OnTagsKeyUp" />
+            <datalist id="tag-suggestions">
+                @foreach (var s in suggestions)
+                {
+                    <option value="@s"></option>
+                }
+            </datalist>
+            <div class="form-text">@T["Profile_TagsHint"]</div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                @if (isSaving)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                @T["Profile_Save"]
+            </button>
+            <a class="btn btn-outline-secondary" href="profile">@T["Profile_Cancel"]</a>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private int userId;
+    private ProjectFormModel model = new();
+    private List<string> suggestions = new();
+    private bool isSaving;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var idValue = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(idValue, out userId))
+        {
+            Navigation.NavigateTo("/account/login?returnUrl=" + Uri.EscapeDataString("/profile/projects/create"), forceLoad: true);
+        }
+    }
+
+    private async Task OnTagsKeyUp(KeyboardEventArgs e)
+    {
+        var last = model.TagsText.Split(',').LastOrDefault()?.Trim() ?? string.Empty;
+        var result = await Sender.Send(new GetTagSuggestionsQuery(last, 10));
+        if (result.IsSuccess)
+        {
+            suggestions = result.Value;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSaving = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await Sender.Send(new CreateProjectCommand(
+                userId,
+                model.Title.Trim(),
+                model.StartDate,
+                model.EndDate,
+                model.DescriptionMarkdown ?? string.Empty,
+                SplitTags(model.TagsText)));
+
+            if (result.IsSuccess)
+            {
+                Navigation.NavigateTo("profile");
+            }
+            else
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Profile_Unexpected"]);
+            }
+        }
+        catch
+        {
+            errorMessage = T["Profile_Unexpected"];
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private static List<string> SplitTags(string text) =>
+        text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+
+    public sealed class ProjectFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+
+        [System.ComponentModel.DataAnnotations.MaxLength(20000)]
+        public string DescriptionMarkdown { get; set; } = string.Empty;
+
+        public string TagsText { get; set; } = string.Empty;
+    }
+}

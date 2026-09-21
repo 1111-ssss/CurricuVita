@@ -1,0 +1,46 @@
+@using System.Globalization
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+
+<div class="dropdown">
+    <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+            type="button"
+            aria-expanded="@open"
+            aria-label="@T["Culture_Label"]"
+            @onclick="Toggle">
+        @CurrentCulture.ToUpperInvariant()
+    </button>
+    @if (open)
+    {
+        <ul class="dropdown-menu dropdown-menu-end show">
+            <li>
+                <a class="dropdown-item @(IsCurrent("en") ? "active" : null)" href="@GetCultureUrl("en")">
+                    @T["Culture_English"]
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item @(IsCurrent("ru") ? "active" : null)" href="@GetCultureUrl("ru")">
+                    @T["Culture_Russian"]
+                </a>
+            </li>
+        </ul>
+    }
+</div>
+
+@code {
+    private bool open;
+
+    private static string CurrentCulture =>
+        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+
+    private void Toggle() => open = !open;
+
+    private static bool IsCurrent(string culture) =>
+        string.Equals(CurrentCulture, culture, StringComparison.OrdinalIgnoreCase);
+
+    private string GetCultureUrl(string culture)
+    {
+        var relative = "/" + Navigation.ToBaseRelativePath(Navigation.Uri);
+        return $"/set-culture?culture={Uri.EscapeDataString(culture)}&redirectUri={Uri.EscapeDataString(relative)}";
+    }
+}

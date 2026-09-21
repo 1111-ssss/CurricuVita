@@ -1,0 +1,886 @@
+@page "/profile"
+
+@using MediatR
+@using Domain.Contracts.UserContracts
+@using Domain.Contracts.AttributeContracts
+@using Domain.Enums
+@using Domain.Constants
+@using Domain.Interfaces.Services
+@using Application.Features.Profile.GetProfile
+@using Application.Features.Profile.UpdateMe
+@using Application.Features.Profile.SaveAttributeValues
+@using Application.Features.Profile.RemoveAttributeValue
+@using Application.Features.Profile.GetAttachableAttributes
+@using Application.Features.Projects.DeleteProject
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject ISender Sender
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+@inject IFileStorageService Files
+
+@implements IDisposable
+
+<PageTitle>@T["Profile_Title"]</PageTitle>
+
+<h1><i class="bi bi-person-fill text-primary me-2"></i>@T["Profile_Heading"]</h1>
+<p class="lead text-body-secondary">@T["Profile_Lead"]</p>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+        @if (isConflict)
+        {
+            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="ReloadAsync">@T["Profile_Reload"]</button>
+        }
+    </div>
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    @if (isSaving)
+    {
+        <span class="text-body-secondary"><span class="spinner-border spinner-border-sm me-1"></span>@T["Profile_Saving"]</span>
+    }
+    else if (hasUnsaved)
+    {
+        <span class="badge text-bg-warning"><i class="bi bi-exclamation-circle me-1"></i>@T["Profile_Unsaved"]</span>
+    }
+    else if (lastSavedAt is not null)
+    {
+        <span class="badge text-bg-success"><i class="bi bi-check-circle me-1"></i>@T["Profile_SavedAt"]: @lastSavedAt.Value.ToLocalTime().ToString("T")</span>
+    }
+    else
+    {
+        <span class="badge text-bg-success"><i class="bi bi-arrow-repeat me-1"></i>Autosave 7s</span>
+    }
+    <button class="btn btn-sm btn-outline-primary ms-auto" @onclick="SaveNowAsync" disabled="@(isLoading || isSaving || isConflict || !hasUnsaved)"><i class="bi bi-check me-1"></i>@T["Profile_SaveNow"]</button>
+</div>
+
+@if (isLoading)
+{
+    <p><em>@T["Profile_Loading"]</em></p>
+}
+else
+{
+    <div class="card section-card mb-4">
+        <div class="card-body">
+            <h2 class="h5 mb-3 text-primary"><i class="bi bi-person-badge me-1"></i>@T["Profile_MeHeading"]</h2>
+            <div class="row g-3">
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="me-first">@T["Profile_FirstName"]</label>
+                    <input id="me-first" class="form-control" @bind="me.FirstName" @bind:after="MarkMeDirty" maxlength="100" />
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="me-last">@T["Profile_LastName"]</label>
+                    <input id="me-last" class="form-control" @bind="me.LastName" @bind:after="MarkMeDirty" maxlength="100" />
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="me-location">@T["Profile_Location"]</label>
+                    <input id="me-location" class="form-control" @bind="me.Location" @bind:after="MarkMeDirty" maxlength="200" />
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="me-avatar">@T["Profile_Avatar"]</label>
+                    <div class="border rounded p-3 mb-2 bg-body-tertiary text-center photo-dropzone">
+                        @if (!string.IsNullOrEmpty(me.AvatarUrl))
+                        {
+                            <img src="@me.AvatarUrl" alt="@T["Profile_Avatar"]" class="rounded-circle mb-2" style="width: 5rem; height: 5rem; object-fit: cover;" />
+                        }
+                        <div class="d-flex justify-content-center">
+                            <InputFile id="me-avatar" OnChange="OnAvatarSelected" accept="image/*" disabled="@isUploadingAvatar" />
+                        </div>
+                        <div class="small text-muted mt-1"><i class="bi bi-cloud-upload"></i><br />@T["Profile_AvatarHint"] (Cloudinary)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card section-card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                <h2 class="h5 text-primary mb-0"><i class="bi bi-info-circle me-1"></i>@T["Profile_InfoHeading"]</h2>
+            </div>
+            <p class="text-body-secondary">@T["Profile_InfoLead"]</p>
+
+            <div class="row g-2 align-items-end mb-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="profile-attr-search">@T["Search_Label"]</label>
+                    <input id="profile-attr-search" class="form-control" @bind="attrFilter"
+                        @bind:event="oninput" placeholder="@T["Search_Placeholder"]" />
+                </div>
+            </div>
+
+            <div class="row g-2 align-items-end mb-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="attr-picker">@T["Profile_AddAttribute"]</label>
+                    <select id="attr-picker" class="form-select" @bind="attachId">
+                        <option value="">@T["Profile_SelectAttribute"]</option>
+                        @foreach (var a in attachable.Where(a => rows.All(r => r.DefinitionId != a.Id)))
+                        {
+                            <option value="@a.Id">@a.Category — @a.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <button class="btn btn-outline-primary" @onclick="AttachSelected" disabled="@(attachId is null)">@T["Profile_Attach"]</button>
+                </div>
+            </div>
+
+            @if (rows.Count == 0)
+            {
+                <p class="text-body-secondary"><em>@T["Profile_NoValues"]</em></p>
+            }
+            else if (VisibleRows.Count == 0)
+            {
+                <p class="text-body-secondary"><em>@T["Profile_NoValues"]</em></p>
+            }
+            else
+            {
+                @foreach (var row in VisibleRows)
+                {
+                    <div class="border rounded p-3 mb-3" @key="row.Key">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            <strong>@row.Name</strong>
+                            <span class="badge text-bg-secondary">@row.Category</span>
+                            <span class="badge text-bg-light">@row.DataType</span>
+                            <button class="btn btn-sm btn-outline-danger ms-auto" @onclick="() => RemoveRowAsync(row)">@T["Profile_Remove"]</button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(row.Description))
+                        {
+                            <p class="text-body-secondary small">@row.Description</p>
+                        }
+                        @switch (row.DataType)
+                        {
+                            case AttributeDataType.String:
+                                <input class="form-control" @bind="row.StringValue" @bind:after="() => MarkRowDirty(row)" maxlength="2000" />
+                                break;
+                            case AttributeDataType.Text:
+                                <textarea class="form-control" rows="4" @bind="row.TextValue" @bind:after="() => MarkRowDirty(row)" maxlength="20000"></textarea>
+                                break;
+                            case AttributeDataType.Image:
+                                <div class="d-flex align-items-center gap-3">
+                                    @if (!string.IsNullOrEmpty(row.ImageValue))
+                                    {
+                                        <img src="@row.ImageValue" alt="@row.Name" class="rounded" style="width: 4rem; height: 4rem; object-fit: cover;" />
+                                    }
+                                    <InputFile OnChange="(e) => OnRowImageSelected(e, row)" accept="image/*" disabled="@row.IsUploading" />
+                                </div>
+                                break;
+                            case AttributeDataType.Numeric:
+                                <InputNumber class="form-control" @bind-Value="row.NumericValue" @bind-Value:after="() => MarkRowDirty(row)" />
+                                break;
+                            case AttributeDataType.Date:
+                                <InputDate class="form-control" @bind-Value="row.DateValue" @bind-Value:after="() => MarkRowDirty(row)" />
+                                break;
+                            case AttributeDataType.Period:
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <InputDate class="form-control" @bind-Value="row.PeriodStartValue" @bind-Value:after="() => MarkRowDirty(row)" />
+                                    </div>
+                                    <div class="col-6">
+                                        <InputDate class="form-control" @bind-Value="row.PeriodEndValue" @bind-Value:after="() => MarkRowDirty(row)" />
+                                    </div>
+                                </div>
+                                break;
+                            case AttributeDataType.Boolean:
+                                <div class="form-check">
+                                    <InputCheckbox class="form-check-input" @bind-Value="row.BooleanValue" @bind-Value:after="() => MarkRowDirty(row)" />
+                                </div>
+                                break;
+                            case AttributeDataType.Dropdown:
+                                <select class="form-select" value="@row.DropdownValue" @onchange="(e) => OnDropdownChanged(row, e.Value?.ToString())">
+                                    <option value="">@T["Profile_SelectAttribute"]</option>
+                                    @foreach (var o in row.Options)
+                                    {
+                                        <option value="@o" selected="@(row.DropdownValue == o)">@o</option>
+                                    }
+                                </select>
+                                break;
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="card section-card mb-4">
+        <div class="card-body">
+            <h2 class="h5 text-primary"><i class="bi bi-kanban me-1"></i>@T["Profile_ProjectsHeading"]</h2>
+            <p class="text-body-secondary">@T["Profile_ProjectsLead"]</p>
+
+            <div class="row g-2 align-items-end mb-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="profile-project-search">@T["Search_Label"]</label>
+                    <input id="profile-project-search" class="form-control" @bind="projectFilter"
+                        @bind:event="oninput" placeholder="@T["Search_Placeholder"]" />
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(projectMessage))
+            {
+                <div class="alert alert-warning">@projectMessage</div>
+            }
+
+            <div class="toolbar p-2 px-3 mb-3 d-flex gap-2 align-items-center flex-wrap" role="toolbar" aria-label="projects">
+                <a class="btn btn-primary btn-sm" href="profile/projects/create"><i class="bi bi-plus-lg me-1"></i>@T["Profile_Create"]</a>
+                <button class="btn btn-sm btn-outline-primary" @onclick="GoToEditProject" disabled="@(selectedProjects.Count != 1)"><i class="bi bi-pencil me-1"></i>@T["Profile_Edit"]</button>
+                <button class="btn btn-sm btn-outline-danger" @onclick="AskDeleteProjects" disabled="@(selectedProjects.Count == 0)"><i class="bi bi-trash me-1"></i>@T["Profile_Delete"]</button>
+                <span class="ms-auto text-muted small">@T["Pos_Selected"]: <strong>@selectedProjects.Count</strong></span>
+            </div>
+
+            @if (confirmDeleteProjects)
+            {
+                <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2">
+                    <span class="me-auto">@T["Profile_DeleteProjectConfirm"]</span>
+                    <button class="btn btn-sm btn-danger" @onclick="ConfirmDeleteProjectsAsync" disabled="@isBusy">@T["Profile_ConfirmYes"]</button>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => confirmDeleteProjects = false">@T["Profile_Cancel"]</button>
+                </div>
+            }
+
+            @if (projects.Count == 0)
+            {
+                <p class="text-body-secondary"><em>@T["Profile_NoProjects"]</em></p>
+            }
+            else if (VisibleProjects.Count == 0)
+            {
+                <p class="text-body-secondary"><em>@T["Profile_NoProjects"]</em></p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" style="width: 2.5rem;">
+                                    <input type="checkbox" class="form-check-input" checked="@IsAllProjectsSelected()" @onchange="ToggleAllProjects" />
+                                </th>
+                                <th scope="col">@T["Profile_ColTitle"]</th>
+                                <th scope="col">@T["Profile_ColPeriod"]</th>
+                                <th scope="col">@T["Profile_ColTags"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in VisibleProjects)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="form-check-input" checked="@selectedProjects.Contains(p.Id)" @onchange="() => ToggleOneProject(p.Id)" />
+                                    </td>
+                                    <td><a href="@($"profile/projects/{p.Id}")">@p.Title</a></td>
+                                    <td>@FormatPeriod(p.StartDate, p.EndDate)</td>
+                                    <td>
+                                        @foreach (var tag in p.Tags)
+                                        {
+                                            <span class="badge text-bg-light me-1">@tag</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card section-card mb-4">
+        <div class="card-body">
+            <h2 class="h5 text-primary"><i class="bi bi-file-earmark-text me-1"></i>@T["Profile_CvsHeading"]</h2>
+            <p class="text-body-secondary">@T["Profile_CvsLead"]</p>
+
+            @if (cvs.Count == 0)
+            {
+                <p class="text-body-secondary"><em>@T["Profile_NoCvs"]</em></p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">@T["Profile_ColPosition"]</th>
+                                <th scope="col">@T["Profile_ColStatus"]</th>
+                                <th scope="col">@T["Profile_ColCreated"]</th>
+                                <th scope="col">@T["Profile_ColUpdated"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in cvs)
+                            {
+                                <tr class="@(c.IsHidden ? "table-warning" : "")">
+                                    <td>
+                                        <a href="@($"cvs/{c.Id}")" class="text-decoration-none fw-bold">@c.PositionTitle</a>
+                                        @if (c.IsHidden)
+                                        {
+                                            <span class="badge text-bg-warning ms-2">@T["Profile_Hidden"]</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (c.Status == CvStatus.Published)
+                                        {
+                                            <span class="badge text-bg-success">@T["Profile_Published"]</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-danger">@T["Profile_Draft"]</span>
+                                        }
+                                    </td>
+                                    <td>@c.CreatedAt.ToLocalTime().ToString("d")</td>
+                                    <td>@c.UpdatedAt.ToLocalTime().ToString("d")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="alert alert-secondary small mt-3 mb-0">
+                    <i class="bi bi-info-circle me-1"></i>@T["Cv_Hidden"]
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private int userId;
+    private bool isAdmin;
+    private bool isLoading = true;
+    private bool isSaving;
+    private bool isBusy;
+    private bool isConflict;
+    private bool isUploadingAvatar;
+    private bool confirmDeleteProjects;
+    private string? errorMessage;
+    private string? projectMessage;
+    private DateTime? lastSavedAt;
+    private CancellationTokenSource? autosaveCts;
+
+    private MeModel me = new();
+    private List<ValueRow> rows = new();
+    private List<AttributeDto> attachable = new();
+    private int? attachId;
+    private List<ProjectDto> projects = new();
+    private HashSet<int> selectedProjects = new();
+    private List<CvListItemDto> cvs = new();
+    private string attrFilter = string.Empty;
+    private string projectFilter = string.Empty;
+
+    private List<ValueRow> VisibleRows => string.IsNullOrWhiteSpace(attrFilter)
+        ? rows
+        : rows.Where(r =>
+            r.Name.Contains(attrFilter.Trim(), StringComparison.OrdinalIgnoreCase) ||
+            r.Category.Contains(attrFilter.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private List<ProjectDto> VisibleProjects => string.IsNullOrWhiteSpace(projectFilter)
+        ? projects
+        : projects.Where(p =>
+            p.Title.Contains(projectFilter.Trim(), StringComparison.OrdinalIgnoreCase) ||
+            p.Tags.Any(t => t.Contains(projectFilter.Trim(), StringComparison.OrdinalIgnoreCase))).ToList();
+
+    private bool hasUnsaved => me.IsDirty || rows.Any(r => r.IsDirty);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var idValue = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(idValue, out userId))
+        {
+            Navigation.NavigateTo("/account/login?returnUrl=" + Uri.EscapeDataString("/profile"), forceLoad: true);
+            return;
+        }
+        isAdmin = state.User.IsInRole(UserRoles.Administrator);
+
+        await ReloadAsync();
+        autosaveCts = new CancellationTokenSource();
+        _ = AutosaveLoopAsync(autosaveCts.Token);
+    }
+
+    private async Task AutosaveLoopAsync(CancellationToken token)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(7));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(token))
+            {
+                if (!hasUnsaved || isSaving || isConflict || isLoading)
+                {
+                    continue;
+                }
+                await SaveAsync();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private async Task ReloadAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        projectMessage = null;
+        isConflict = false;
+
+        try
+        {
+            var profileTask = Sender.Send(new GetProfileQuery(userId));
+            var attachableTask = Sender.Send(new GetAttachableAttributesQuery());
+            await Task.WhenAll(profileTask, attachableTask);
+
+            var profile = await profileTask;
+            var lib = await attachableTask;
+
+            if (!profile.IsSuccess)
+            {
+                errorMessage = LocalizedError.Message(T, profile.Error?.Code, T["Profile_Unexpected"]);
+                return;
+            }
+
+            me = MeModel.FromDto(profile.Value.Me);
+            rows = profile.Value.Values.Select(ValueRow.FromDto).ToList();
+            projects = profile.Value.Projects;
+            selectedProjects.RemoveWhere(id => projects.All(p => p.Id != id));
+            cvs = profile.Value.Cvs;
+            lastSavedAt = null;
+
+            if (lib.IsSuccess)
+            {
+                attachable = lib.Value;
+            }
+        }
+        catch
+        {
+            errorMessage = T["Profile_Unexpected"];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveNowAsync()
+    {
+        if (isSaving || isConflict)
+        {
+            return;
+        }
+        await SaveAsync();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (isSaving || isConflict)
+        {
+            return;
+        }
+
+        isSaving = true;
+        errorMessage = null;
+
+        try
+        {
+            if (me.IsDirty)
+            {
+                var meResult = await Sender.Send(new UpdateMeCommand(
+                    userId,
+                    me.FirstName?.Trim() ?? string.Empty,
+                    me.LastName?.Trim() ?? string.Empty,
+                    me.Location?.Trim() ?? string.Empty,
+                    string.IsNullOrWhiteSpace(me.AvatarUrl) ? null : me.AvatarUrl.Trim(),
+                    string.IsNullOrWhiteSpace(me.AvatarPublicId) ? null : me.AvatarPublicId.Trim(),
+                    me.Version));
+
+                if (!meResult.IsSuccess)
+                {
+                    HandleSaveError(meResult.Error?.Code);
+                    return;
+                }
+
+                me.Version = meResult.Value.Version;
+                me.IsDirty = false;
+            }
+
+            var dirty = rows.Where(r => r.IsDirty).ToList();
+            if (dirty.Count > 0)
+            {
+                var valuesResult = await Sender.Send(new SaveAttributeValuesCommand(
+                    userId,
+                    dirty.Select(r => new AttributeValueInput(
+                        r.ValueId,
+                        r.DefinitionId,
+                        r.IsNew ? null : r.Version,
+                        r.StringValue,
+                        r.TextValue,
+                        r.ImageValue,
+                        r.NumericValue,
+                        r.DateValue,
+                        r.PeriodStartValue,
+                        r.PeriodEndValue,
+                        r.BooleanValue,
+                        r.DropdownValue)).ToList(), userId, isAdmin));
+
+                if (!valuesResult.IsSuccess)
+                {
+                    HandleSaveError(valuesResult.Error?.Code);
+                    return;
+                }
+
+                foreach (var dto in valuesResult.Value)
+                {
+                    var row = rows.FirstOrDefault(r =>
+                        (r.ValueId.HasValue && r.ValueId == dto.ValueId) ||
+                        (!r.ValueId.HasValue && r.DefinitionId == dto.AttributeDefinitionId));
+                    if (row is not null)
+                    {
+                        row.ValueId = dto.ValueId;
+                        row.Version = dto.Version ?? row.Version;
+                        row.IsDirty = false;
+                    }
+                }
+            }
+
+            lastSavedAt = DateTime.UtcNow;
+        }
+        catch
+        {
+            errorMessage = T["Profile_Unexpected"];
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleSaveError(string? code)
+    {
+        if (code == "ConcurrencyConflict")
+        {
+            isConflict = true;
+            errorMessage = T["Profile_Conflict"];
+        }
+        else
+        {
+            errorMessage = LocalizedError.Message(T, code, T["Profile_Unexpected"]);
+        }
+    }
+
+    private void MarkMeDirty() => me.IsDirty = true;
+
+    private void MarkRowDirty(ValueRow row) => row.IsDirty = true;
+
+    private void OnDropdownChanged(ValueRow row, string? value)
+    {
+        row.DropdownValue = value;
+        row.IsDirty = true;
+    }
+
+    private async Task OnAvatarSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file is null)
+        {
+            return;
+        }
+
+        isUploadingAvatar = true;
+        errorMessage = null;
+
+        try
+        {
+            await using var stream = file.OpenReadStream(5 * 1024 * 1024);
+            var upload = await Files.UploadAvatar(stream, file.Name);
+            if (!upload.IsSuccess)
+            {
+                errorMessage = LocalizedError.Message(T, upload.Error?.Code, T["Profile_Unexpected"]);
+                return;
+            }
+
+            me.AvatarUrl = upload.Value.Url;
+            me.AvatarPublicId = upload.Value.PublicId;
+            me.IsDirty = true;
+        }
+        catch
+        {
+            errorMessage = T["Profile_Unexpected"];
+        }
+        finally
+        {
+            isUploadingAvatar = false;
+        }
+    }
+
+    private async Task OnRowImageSelected(InputFileChangeEventArgs e, ValueRow row)
+    {
+        var file = e.File;
+        if (file is null)
+        {
+            return;
+        }
+
+        row.IsUploading = true;
+        errorMessage = null;
+
+        try
+        {
+            await using var stream = file.OpenReadStream(5 * 1024 * 1024);
+            var upload = await Files.UploadAvatar(stream, file.Name);
+            if (!upload.IsSuccess)
+            {
+                errorMessage = LocalizedError.Message(T, upload.Error?.Code, T["Profile_Unexpected"]);
+                return;
+            }
+
+            row.ImageValue = upload.Value.Url;
+            row.IsDirty = true;
+        }
+        catch
+        {
+            errorMessage = T["Profile_Unexpected"];
+        }
+        finally
+        {
+            row.IsUploading = false;
+        }
+    }
+
+    private void AttachSelected()
+    {
+        if (attachId is null)
+        {
+            return;
+        }
+
+        var definition = attachable.FirstOrDefault(a => a.Id == attachId.Value);
+        if (definition is null || rows.Any(r => r.DefinitionId == definition.Id))
+        {
+            attachId = null;
+            return;
+        }
+
+        rows.Add(ValueRow.NewEmpty(definition));
+        attachId = null;
+    }
+
+    private async Task RemoveRowAsync(ValueRow row)
+    {
+        errorMessage = null;
+
+        try
+        {
+            if (row.ValueId.HasValue)
+            {
+                var result = await Sender.Send(new RemoveProfileAttributeCommand(userId, row.ValueId.Value));
+                if (!result.IsSuccess)
+                {
+                    errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Profile_Unexpected"]);
+                    return;
+                }
+            }
+
+            rows.Remove(row);
+        }
+        catch
+        {
+            errorMessage = T["Profile_Unexpected"];
+        }
+    }
+
+    private bool IsAllProjectsSelected() => projects.Count > 0 && selectedProjects.Count == projects.Count;
+
+    private void ToggleAllProjects(ChangeEventArgs e)
+    {
+        if ((bool?)e.Value == true)
+        {
+            selectedProjects = projects.Select(p => p.Id).ToHashSet();
+        }
+        else
+        {
+            selectedProjects.Clear();
+        }
+    }
+
+    private void ToggleOneProject(int id)
+    {
+        if (!selectedProjects.Add(id))
+        {
+            selectedProjects.Remove(id);
+        }
+    }
+
+    private void GoToEditProject()
+    {
+        if (selectedProjects.Count == 1)
+        {
+            Navigation.NavigateTo($"profile/projects/{selectedProjects.Single()}");
+        }
+        else
+        {
+            projectMessage = T["Profile_SelectOne"];
+        }
+    }
+
+    private void AskDeleteProjects()
+    {
+        if (selectedProjects.Count == 0)
+        {
+            projectMessage = T["Profile_SelectAny"];
+            return;
+        }
+
+        projectMessage = null;
+        confirmDeleteProjects = true;
+    }
+
+    private async Task ConfirmDeleteProjectsAsync()
+    {
+        isBusy = true;
+        projectMessage = null;
+
+        try
+        {
+            foreach (var id in selectedProjects.ToList())
+            {
+                var project = projects.FirstOrDefault(p => p.Id == id);
+                if (project is null)
+                {
+                    continue;
+                }
+
+                var result = await Sender.Send(new DeleteProjectCommand(id, userId, project.Version));
+                if (!result.IsSuccess)
+                {
+                    projectMessage = LocalizedError.Message(T, result.Error?.Code, T["Profile_Unexpected"]);
+                    break;
+                }
+            }
+
+            confirmDeleteProjects = false;
+            await RefreshProjectsAsync();
+        }
+        catch
+        {
+            projectMessage = T["Profile_Unexpected"];
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task RefreshProjectsAsync()
+    {
+        try
+        {
+            var profile = await Sender.Send(new GetProfileQuery(userId));
+            if (profile.IsSuccess)
+            {
+                projects = profile.Value.Projects;
+                selectedProjects.RemoveWhere(id => projects.All(p => p.Id != id));
+            }
+        }
+        catch
+        {
+            projectMessage = T["Profile_Unexpected"];
+        }
+    }
+
+    private static string FormatPeriod(DateTime? start, DateTime? end)
+    {
+        if (start is null && end is null)
+        {
+            return string.Empty;
+        }
+        return $"{start?.ToString("d") ?? "…"} — {end?.ToString("d") ?? "…"}";
+    }
+
+    public void Dispose()
+    {
+        autosaveCts?.Cancel();
+        autosaveCts?.Dispose();
+    }
+
+    private sealed class MeModel
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public string? AvatarUrl { get; set; }
+        public string? AvatarPublicId { get; set; }
+        public int Version { get; set; }
+        public bool IsDirty { get; set; }
+
+        public static MeModel FromDto(MeDto dto) => new()
+        {
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Location = dto.Location,
+            AvatarUrl = dto.AvatarUrl,
+            Version = dto.Version
+        };
+    }
+
+    private sealed class ValueRow
+    {
+        public Guid Key { get; } = Guid.NewGuid();
+        public int? ValueId { get; set; }
+        public int DefinitionId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public AttributeDataType DataType { get; set; }
+        public List<string> Options { get; set; } = new();
+        public int Version { get; set; }
+        public string? StringValue { get; set; }
+        public string? TextValue { get; set; }
+        public string? ImageValue { get; set; }
+        public decimal? NumericValue { get; set; }
+        public DateTime? DateValue { get; set; }
+        public DateTime? PeriodStartValue { get; set; }
+        public DateTime? PeriodEndValue { get; set; }
+        public bool BooleanValue { get; set; }
+        public string? DropdownValue { get; set; }
+        public bool IsDirty { get; set; }
+        public bool IsUploading { get; set; }
+
+        public bool IsNew => !ValueId.HasValue;
+
+        public static ValueRow FromDto(ProfileAttributeValueDto dto) => new()
+        {
+            ValueId = dto.ValueId,
+            DefinitionId = dto.AttributeDefinitionId,
+            Name = dto.Name,
+            Category = dto.Category,
+            Description = dto.Description,
+            DataType = dto.DataType,
+            Options = dto.Options,
+            Version = dto.Version ?? 1,
+            StringValue = dto.StringValue,
+            TextValue = dto.TextValue,
+            ImageValue = dto.ImageValue,
+            NumericValue = dto.NumericValue,
+            DateValue = dto.DateValue,
+            PeriodStartValue = dto.PeriodStartValue,
+            PeriodEndValue = dto.PeriodEndValue,
+            BooleanValue = dto.BooleanValue ?? false,
+            DropdownValue = dto.DropdownValue
+        };
+
+        public static ValueRow NewEmpty(AttributeDto definition) => new()
+        {
+            DefinitionId = definition.Id,
+            Name = definition.Name,
+            Category = definition.Category,
+            Description = definition.Description,
+            DataType = definition.DataType,
+            Options = definition.Options,
+            Version = 1,
+            IsDirty = true
+        };
+    }
+}

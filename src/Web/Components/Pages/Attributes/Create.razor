@@ -1,0 +1,74 @@
+@page "/attributes/create"
+
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Application.Features.Attributes.CreateAttribute
+@using Application.Features.Attributes.Categories
+
+@attribute [Authorize(Policy = "RequireRecruiterOrAdmin")]
+
+@inject ISender Sender
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Attr_CreateTitle"]</PageTitle>
+
+<h1>@T["Attr_CreateTitle"]</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="col-12 col-lg-8 col-xl-6">
+    <AttributeForm Model="model" Categories="categories" IsSaving="isSaving" OnValidSubmit="HandleSubmit" />
+</div>
+
+@code {
+    private AttributeFormModel model = new();
+    private List<string> categories = new();
+    private bool isSaving;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Sender.Send(new GetCategoriesQuery());
+        if (result.IsSuccess)
+        {
+            categories = result.Value;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSaving = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await Sender.Send(new CreateAttributeCommand(
+                Category: model.Category.Trim(),
+                Name: model.Name.Trim(),
+                Description: model.Description?.Trim() ?? string.Empty,
+                DataType: model.DataType,
+                Options: model.GetOptions()));
+
+            if (result.IsSuccess)
+            {
+                Navigation.NavigateTo("attributes");
+            }
+            else
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Attr_Unexpected"]);
+            }
+        }
+        catch
+        {
+            errorMessage = T["Attr_Unexpected"];
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

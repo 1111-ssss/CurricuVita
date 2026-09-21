@@ -1,0 +1,98 @@
+@page "/users/{Id:int}"
+
+@using MediatR
+@using Application.Features.Users.GetPublicProfile
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+@inject ISender Sender
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["User_Title"]</PageTitle>
+
+@if (isLoading)
+{
+    <p><em>@T["User_Loading"]</em></p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else if (profile is not null)
+{
+    <h1>@profile.DisplayName</h1>
+    @if (!string.IsNullOrWhiteSpace(profile.Location))
+    {
+        <p class="text-body-secondary">@profile.Location</p>
+    }
+    @if (!string.IsNullOrEmpty(profile.AvatarUrl))
+    {
+        <img src="@profile.AvatarUrl" alt="@profile.DisplayName" class="rounded mb-3" style="width: 6rem; height: 6rem; object-fit: cover;" />
+    }
+
+    <h2 class="h5 mt-3">@T["User_CvsHeading"] (@profile.PublishedCvs.Count)</h2>
+    @if (profile.PublishedCvs.Count == 0)
+    {
+        <p class="text-body-secondary"><em>@T["User_NoCvs"]</em></p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">@T["User_ColPosition"]</th>
+                        <th scope="col" class="text-end">@T["User_ColLikes"]</th>
+                        <th scope="col" class="text-end">@T["User_ColUpdated"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in profile.PublishedCvs)
+                    {
+                        <tr>
+                            <td><a href="@($"cvs/{c.CvId}")">@c.PositionTitle</a></td>
+                            <td class="text-end">@c.LikesCount</td>
+                            <td class="text-end">@c.UpdatedAt.ToString("g")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Domain.Contracts.UserContracts.PublicProfileDto? profile;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            var result = await Sender.Send(new GetPublicProfileQuery(Id));
+            if (result.IsSuccess)
+            {
+                profile = result.Value;
+            }
+            else
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["User_Unexpected"]);
+            }
+        }
+        catch
+        {
+            errorMessage = T["User_Unexpected"];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

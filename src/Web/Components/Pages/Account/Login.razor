@@ -1,0 +1,60 @@
+@page "/account/login"
+
+@inject IStringLocalizer<SharedResource> T
+@using Web.Endpoints
+
+<PageTitle>@T["Login_Title"]</PageTitle>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body p-4">
+                <h3 class="mb-4 text-center">@T["Login_Heading"]</h3>
+
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="alert alert-danger">@ErrorMessage</div>
+                }
+
+                <form method="post" action="/api/auth/login-form">
+                    <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
+                    <div class="mb-3">
+                        <label class="form-label" for="login-email">@T["Login_Email"]</label>
+                        <input id="login-email" name="email" type="email" class="form-control"
+                            required autocomplete="username" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="login-password">@T["Login_Password"]</label>
+                        <input id="login-password" name="password" type="password" class="form-control"
+                            required autocomplete="current-password" />
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">@T["Login_Submit"]</button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="/account/register">@T["Login_RegisterLink"]</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? ErrorCode { get; set; }
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrlQuery { get; set; }
+
+    private string ReturnUrl => AuthRedirectHelper.ToLocalUrl(ReturnUrlQuery);
+
+    private string? ErrorMessage =>
+        string.IsNullOrEmpty(ErrorCode)
+            ? null
+            : LocalizedError.Message(T, ErrorCode, T["Login_Failed"]);
+}
