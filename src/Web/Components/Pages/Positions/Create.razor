@@ -1,0 +1,107 @@
+@page "/positions/create"
+
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Domain.Contracts.AttributeContracts
+@using Application.Features.Attributes.ListAttributes
+@using Application.Features.Positions.CreatePosition
+@using Application.Features.Tags.GetTagSuggestions
+
+@attribute [Authorize(Policy = "RequireRecruiterOrAdmin")]
+
+@inject ISender Sender
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Pos_CreateTitle"]</PageTitle>
+
+<h1>@T["Pos_CreateTitle"]</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (isLoading)
+{
+    <p><em>@T["Pos_Loading"]</em></p>
+}
+else
+{
+    <div class="col-12 col-xl-10">
+        <PositionForm Model="model" Library="library" TagSuggestions="tagSuggestions"
+            IsSaving="isSaving" OnValidSubmit="HandleSubmit" />
+    </div>
+}
+
+@code {
+    private PositionFormModel model = new();
+    private List<AttributeDto> library = new();
+    private List<string> tagSuggestions = new();
+    private bool isLoading = true;
+    private bool isSaving;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var attrs = await Sender.Send(new ListAttributesQuery(Take: 200, Skip: 0));
+            if (attrs.IsSuccess)
+            {
+                library = attrs.Value;
+            }
+
+            var tags = await Sender.Send(new GetTagSuggestionsQuery(null, 30));
+            if (tags.IsSuccess)
+            {
+                tagSuggestions = tags.Value;
+            }
+        }
+        catch
+        {
+            errorMessage = T["Pos_Unexpected"];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSaving = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await Sender.Send(new CreatePositionCommand(
+                Title: model.Title.Trim(),
+                DescriptionMarkdown: model.DescriptionMarkdown?.Trim() ?? string.Empty,
+                Company: string.IsNullOrWhiteSpace(model.Company) ? null : model.Company.Trim(),
+                Level: string.IsNullOrWhiteSpace(model.Level) ? null : model.Level.Trim(),
+                IsPublic: model.IsPublic,
+                MaxProjectCount: model.MaxProjectCount,
+                Attributes: model.ToAttributeInputs(),
+                AccessRules: model.ToRuleInputs(),
+                Tags: model.GetTags()));
+
+            if (result.IsSuccess)
+            {
+                Navigation.NavigateTo($"positions/{result.Value.Id}");
+            }
+            else
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Pos_Unexpected"]);
+            }
+        }
+        catch
+        {
+            errorMessage = T["Pos_Unexpected"];
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

@@ -57,8 +57,8 @@ public class PositionRepository : BaseRepository<Position>, IPositionRepository
 
         if (!string.IsNullOrWhiteSpace(company))
         {
-            var c = company.Trim().ToLower();
-            query = query.Where(p => p.Company != null && p.Company.ToLower().Contains(c));
+            var c = company.Trim();
+            query = query.Where(p => p.Company != null && EF.Functions.ILike(p.Company, $"%{c}%"));
         }
 
         if (!string.IsNullOrWhiteSpace(level))
@@ -70,7 +70,6 @@ public class PositionRepository : BaseRepository<Position>, IPositionRepository
         if (!string.IsNullOrWhiteSpace(searchText))
         {
             var raw = searchText.Trim();
-            var q = raw.ToLower();
 
             query = query.Where(p =>
                 EF.Functions.ToTsVector(FtsConfig,
@@ -78,10 +77,10 @@ public class PositionRepository : BaseRepository<Position>, IPositionRepository
                         (p.DescriptionMarkdown ?? string.Empty) + " " +
                         (p.Company ?? string.Empty))
                     .Matches(EF.Functions.PlainToTsQuery(FtsConfig, raw)) ||
-                (p.Title != null && p.Title.ToLower().Contains(q)) ||
-                (p.DescriptionMarkdown != null && p.DescriptionMarkdown.ToLower().Contains(q)) ||
-                (p.Company != null && p.Company.ToLower().Contains(q)) ||
-                p.RequiredTags.Any(rt => rt.Tag.Name.ToLower().Contains(q)));
+                (p.Title != null && EF.Functions.ILike(p.Title, $"%{raw}%")) ||
+                (p.DescriptionMarkdown != null && EF.Functions.ILike(p.DescriptionMarkdown, $"%{raw}%")) ||
+                (p.Company != null && EF.Functions.ILike(p.Company, $"%{raw}%")) ||
+                p.RequiredTags.Any(rt => EF.Functions.ILike(rt.Tag.Name, $"%{raw}%")));
         }
 
         if (onlyPublic == true)
@@ -123,7 +122,6 @@ public class PositionRepository : BaseRepository<Position>, IPositionRepository
         if (!string.IsNullOrWhiteSpace(searchText))
         {
             var raw = searchText.Trim();
-            var q = raw.ToLower();
 
             query = query.Where(c =>
                 EF.Functions.ToTsVector(FtsConfig,
@@ -131,13 +129,28 @@ public class PositionRepository : BaseRepository<Position>, IPositionRepository
                         (c.User.LastName ?? string.Empty) + " " +
                         (c.User.Email ?? string.Empty))
                     .Matches(EF.Functions.PlainToTsQuery(FtsConfig, raw)) ||
-                (c.User.FirstName != null && c.User.FirstName.ToLower().Contains(q)) ||
-                (c.User.LastName != null && c.User.LastName.ToLower().Contains(q)) ||
-                (c.User.Email != null && c.User.Email.ToLower().Contains(q)));
+                (c.User.FirstName != null && EF.Functions.ILike(c.User.FirstName, $"%{raw}%")) ||
+                (c.User.LastName != null && EF.Functions.ILike(c.User.LastName, $"%{raw}%")) ||
+                (c.User.Email != null && EF.Functions.ILike(c.User.Email, $"%{raw}%")));
         }
 
         return await query
             .OrderByDescending(c => c.UpdatedAt)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> DeletePositionsBulkAsync(
+        ICollection<int> ids,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (ids is null || ids.Count == 0)
+        {
+            return 0;
+        }
+
+        return await _context.Positions
+            .Where(p => ids.Contains(p.Id))
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

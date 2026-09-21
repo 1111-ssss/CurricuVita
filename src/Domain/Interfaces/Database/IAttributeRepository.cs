@@ -10,4 +10,9 @@ public interface IAttributeRepository : IRepositoryBase<AttributeDefinition>
         int expectedVersion,
         CancellationToken cancellationToken = default
     );
+
+    Task<int> DeleteAttributesBulkAsync(
+        ICollection<int> ids,
+        CancellationToken cancellationToken = default
+    );
 }

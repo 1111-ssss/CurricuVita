@@ -1,0 +1,664 @@
+@page "/positions/{Id:int}"
+
+@using MediatR
+@using Microsoft.AspNetCore.Components.Authorization
+@using Domain.Contracts.PositionContracts
+@using Domain.Contracts.AttributeContracts
+@using Application.Features.Attributes.ListAttributes
+@using Application.Features.Positions.GetPosition
+@using Application.Features.Positions.UpdatePosition
+@using Application.Features.Positions.ListPositionCvs
+@using Application.Features.Positions.GetPositionAggregates
+@using Application.Features.Tags.GetTagSuggestions
+@using Application.Features.Cvs.CreateCv
+@using Application.Features.Cvs.GetMyCv
+@using Application.Features.Discussions.ListMessages
+@using Application.Features.Discussions.PostMessage
+@using System.Security.Claims
+
+@implements IDisposable
+
+@inject ISender Sender
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthState
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Pos_DetailTitle"]</PageTitle>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+        @if (isConcurrencyConflict)
+        {
+            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="ReloadAsync">@T["Pos_Reload"]</button>
+        }
+    </div>
+}
+
+@if (isLoading)
+{
+    <p><em>@T["Pos_Loading"]</em></p>
+}
+else if (model is not null)
+{
+    <h1><i class="bi bi-briefcase-fill text-primary me-2"></i>@title</h1>
+    <p class="text-body-secondary">
+        @if (!string.IsNullOrWhiteSpace(company))
+        {
+            <span class="badge text-bg-info me-2"><i class="bi bi-building me-1"></i>@company</span>
+        }
+        @if (!string.IsNullOrWhiteSpace(level))
+        {
+            <span class="badge @LevelBadge() me-2">@level</span>
+        }
+        @if (isPublic)
+        {
+            <span class="badge text-bg-success me-2">@T["Pos_Public"]</span>
+        }
+        else
+        {
+            <span class="badge text-bg-warning me-2">@T["Pos_Private"]</span>
+        }
+        <span>@T["Pos_UpdatedAt"]: @updatedAt.ToString("g")</span>
+    </p>
+
+    <AuthorizeView Policy="RequireRecruiterOrAdmin">
+        <div class="col-12 col-xl-10 mb-4">
+            <PositionForm Model="model" Library="library" TagSuggestions="tagSuggestions"
+                IsSaving="isSaving" OnValidSubmit="HandleSubmit" />
+        </div>
+    </AuthorizeView>
+
+    <AuthorizeView>
+        <Authorized>
+            <div class="card mt-3 mb-4">
+                <div class="card-body d-flex flex-wrap align-items-center gap-2">
+                    <div class="me-auto">
+                        <h2 class="h5 mb-1">@T["Pos_MyCvHeading"]</h2>
+                        @if (!string.IsNullOrEmpty(myCvError))
+                        {
+                            <span class="text-danger small">@myCvError</span>
+                        }
+                        else if (myCvId.HasValue)
+                        {
+                            <span class="text-body-secondary small">@T["Pos_MyCvExists"]</span>
+                        }
+                        else
+                        {
+                            <span class="text-body-secondary small">@T["Pos_MyCvLead"]</span>
+                        }
+                    </div>
+                    @if (myCvId.HasValue)
+                    {
+                        <a class="btn btn-outline-primary" href="@($"cvs/{myCvId.Value}")">@T["Pos_MyCvOpen"]</a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" @onclick="CreateMyCvAsync" disabled="@(myCvBusy)">@T["Pos_MyCvCreate"]</button>
+                    }
+                </div>
+            </div>
+
+            <AuthorizeView Policy="RequireRecruiterOrAdmin" Context="inner">
+                <h2 class="h5 mt-4"><i class="bi bi-file-earmark-text me-1"></i>@T["Pos_CvsHeading"] (@filteredCvs.Count)</h2>
+                <div class="row g-2 align-items-end mb-2">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="cv-search">@T["Pos_CvSearchLabel"]</label>
+                        <input id="cv-search" class="form-control" @bind="cvSearch"
+                            @bind:event="oninput" @onkeyup="OnCvSearchKeyUp"
+                            placeholder="@T["Pos_CvSearchPlaceholder"]" />
+                    </div>
+                    <div class="col-12 col-md-3 d-flex gap-2">
+                        <button class="btn btn-outline-primary flex-fill" @onclick="LoadCvsAsync">@T["Pos_SearchButton"]</button>
+                        <button class="btn btn-outline-secondary flex-fill" @onclick="ClearCvSearch">@T["Pos_ClearButton"]</button>
+                    </div>
+                </div>
+                @if (filteredCvs.Count == 0)
+                {
+                    <p class="text-body-secondary"><em>@T["Pos_NoCvs"]</em></p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">@T["Pos_CvCandidate"]</th>
+                                    <th scope="col" class="text-end">@T["Pos_CvLikes"]</th>
+                                    <th scope="col" class="text-end">@T["Pos_CvCreated"]</th>
+                                    <th scope="col" class="text-end">@T["Pos_CvUpdated"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var c in filteredCvs)
+                                {
+                                    <tr>
+                                        <td><a href="@($"cvs/{c.Id}")" class="text-decoration-none fw-bold">@c.Id</a></td>
+                                        <td><a href="@($"cvs/{c.Id}")" class="text-decoration-none">@c.CandidateName</a></td>
+                                        <td class="text-end"><span class="badge bg-primary rounded-pill"><i class="bi bi-heart-fill me-1"></i>@c.LikesCount</span></td>
+                                        <td class="text-end">@c.CreatedAt.ToString("g")</td>
+                                        <td class="text-end">@c.UpdatedAt.ToString("g")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <h2 class="h5 mt-4">@T["Pos_AggregatesHeading"] (@(aggregates?.PublishedCvCount ?? 0))</h2>
+                <p class="text-body-secondary small">@T["Pos_AggregatesLead"]</p>
+                @if (aggregates is null || aggregates.NumericAggregates.Count == 0)
+                {
+                    <p class="text-body-secondary"><em>@T["Pos_AggEmpty"]</em></p>
+                }
+                else
+                {
+                    <div class="table-responsive mb-4">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">@T["Pos_AggAttr"]</th>
+                                    <th scope="col" class="text-end">@T["Pos_AggCount"]</th>
+                                    <th scope="col" class="text-end">@T["Pos_AggAverage"]</th>
+                                    <th scope="col" class="text-end">@T["Pos_AggMin"]</th>
+                                    <th scope="col" class="text-end">@T["Pos_AggMax"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var a in aggregates.NumericAggregates)
+                                {
+                                    <tr>
+                                        <td>@a.Name</td>
+                                        <td class="text-end">@a.Count</td>
+                                        <td class="text-end">@a.Average.ToString("F2")</td>
+                                        <td class="text-end">@a.Min</td>
+                                        <td class="text-end">@a.Max</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </AuthorizeView>
+        </Authorized>
+        <NotAuthorized>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h2 class="h5">@title</h2>
+                    <p class="text-body-secondary" style="white-space: pre-wrap;">@description</p>
+                    @if (tags.Count > 0)
+                    {
+                        <div class="d-flex flex-wrap gap-1">
+                            @foreach (var tag in tags)
+                            {
+                                <span class="badge text-bg-light border">@tag</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+
+    <div class="card mt-4 mb-4">
+        <div class="card-header bg-body-tertiary fw-bold">
+            <i class="bi bi-chat-left-text me-1"></i>@T["Pos_DiscussionHeading"] (@messages.Count)
+            <small class="text-muted fw-normal ms-2">@T["Pos_DiscussionLead"]</small>
+        </div>
+        <div class="card-body" style="max-height: 320px; overflow-y: auto;">
+            @if (!string.IsNullOrEmpty(discussionError))
+            {
+                <div class="alert alert-danger">@discussionError</div>
+            }
+            @if (messages.Count == 0)
+            {
+                <p class="text-body-secondary"><em>@T["Pos_DiscussionEmpty"]</em></p>
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var m in messages)
+                    {
+                        <div class="d-flex gap-2">
+                            <i class="bi bi-person-circle fs-4 text-secondary"></i>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between flex-wrap gap-1">
+                                    @if (canSeeAuthorLinks)
+                                    {
+                                        <a href="@($"users/{m.AuthorId}")" class="text-decoration-none"><strong>@m.AuthorName</strong></a>
+                                    }
+                                    else
+                                    {
+                                        <strong>@m.AuthorName</strong>
+                                    }
+                                    <span class="text-body-secondary small">@m.CreatedAt.ToLocalTime().ToString("g")</span>
+                                </div>
+                                <div class="markdown-body mt-1 p-2 bg-body-tertiary rounded">
+                                    <Web.Components.Shared.MarkdownView Markdown="@m.ContentMarkdown" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+        <div class="card-footer bg-body-tertiary">
+            <AuthorizeView>
+                <Authorized>
+                    <div class="mb-2">
+                        <label class="form-label" for="disc-input">@T["Pos_DiscussionNew"]</label>
+                        <div class="input-group">
+                            <textarea id="disc-input" class="form-control" rows="2" @bind="newMessage" maxlength="5000"></textarea>
+                            <button class="btn btn-primary" @onclick="PostMessageAsync" disabled="@(isPosting || string.IsNullOrWhiteSpace(newMessage))">
+                                <i class="bi bi-send me-1"></i>@(isPosting ? T["Pos_DiscussionSending"] : T["Pos_DiscussionSend"])
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block"><i class="bi bi-info-circle me-1"></i>Append-only: messages are added to the end only.</small>
+                </Authorized>
+                <NotAuthorized>
+                    <p class="text-body-secondary mb-0"><em>@T["Pos_DiscussionSignIn"]</em></p>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </div>
+}
+
+<div class="mt-3">
+    <a href="positions">@T["Pos_Back"]</a>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private PositionFormModel? model;
+    private List<AttributeDto> library = new();
+    private List<string> tagSuggestions = new();
+    private List<PositionCvListItemDto> cvs = new();
+    private List<PositionCvListItemDto> filteredCvs = new();
+    private PositionAggregatesDto? aggregates;
+    private string cvSearch = string.Empty;
+    private List<Domain.Contracts.DiscussionContracts.DiscussionMessageDto> messages = new();
+    private string newMessage = string.Empty;
+    private bool isPosting;
+    private string? discussionError;
+    private bool canSeeAuthorLinks;
+    private CancellationTokenSource? discussionCts;
+    private string title = string.Empty;
+    private string description = string.Empty;
+    private string? company;
+    private string? level;
+    private List<string> tags = new();
+    private bool isPublic;
+    private DateTime updatedAt;
+    private int version;
+    private bool isLoading = true;
+    private bool isSaving;
+    private string? errorMessage;
+    private bool isConcurrencyConflict;
+    private int? myCvId;
+    private bool myCvBusy;
+    private string? myCvError;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        isConcurrencyConflict = false;
+
+        try
+        {
+            var attrs = await Sender.Send(new ListAttributesQuery(Take: 200, Skip: 0));
+            if (attrs.IsSuccess)
+            {
+                library = attrs.Value;
+            }
+
+            var tagResult = await Sender.Send(new GetTagSuggestionsQuery(null, 30));
+            if (tagResult.IsSuccess)
+            {
+                tagSuggestions = tagResult.Value;
+            }
+
+            var result = await Sender.Send(new GetPositionQuery(Id));
+            if (result.IsSuccess)
+            {
+                var dto = result.Value;
+                title = dto.Title;
+                description = dto.DescriptionMarkdown;
+                company = dto.Company;
+                level = dto.Level;
+                tags = dto.Tags;
+                isPublic = dto.IsPublic;
+                updatedAt = dto.UpdatedAt;
+                version = dto.Version;
+
+                model = new PositionFormModel
+                {
+                    Title = dto.Title,
+                    DescriptionMarkdown = dto.DescriptionMarkdown,
+                    Company = dto.Company,
+                    Level = dto.Level,
+                    IsPublic = dto.IsPublic,
+                    MaxProjectCount = dto.MaxProjectCount,
+                    SelectedAttributeIds = dto.Attributes.Select(a => a.AttributeDefinitionId).ToHashSet(),
+                    RequiredAttributeIds = dto.Attributes.Where(a => a.IsRequired).Select(a => a.AttributeDefinitionId).ToHashSet(),
+                    AccessRules = dto.AccessRules.Select(r => new AccessRuleRow
+                    {
+                        AttributeDefinitionId = r.AttributeDefinitionId,
+                        Operator = r.Operator,
+                        Value = r.Value
+                    }).ToList(),
+                    TagsText = string.Join(", ", dto.Tags)
+                };
+
+                var cvsResult = await Sender.Send(await BuildListCvsQueryAsync(null));
+                if (cvsResult.IsSuccess)
+                {
+                    cvs = cvsResult.Value;
+                    filteredCvs = cvs;
+                }
+
+                var aggResult = await Sender.Send(new GetPositionAggregatesQuery(Id));
+                if (aggResult.IsSuccess)
+                {
+                    aggregates = aggResult.Value;
+                }
+
+                await LoadMyCvAsync();
+
+                var authState = await AuthState.GetAuthenticationStateAsync();
+                canSeeAuthorLinks = authState.User.IsInRole(Domain.Constants.UserRoles.Recruiter)
+                    || authState.User.IsInRole(Domain.Constants.UserRoles.Administrator);
+
+                await LoadMessagesAsync();
+                StartDiscussionPolling();
+            }
+            else
+            {
+                model = null;
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Pos_Unexpected"]);
+            }
+        }
+        catch
+        {
+            model = null;
+            errorMessage = T["Pos_Unexpected"];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (model is null)
+        {
+            return;
+        }
+
+        isSaving = true;
+        errorMessage = null;
+        isConcurrencyConflict = false;
+
+        try
+        {
+            var result = await Sender.Send(new UpdatePositionCommand(
+                Id: Id,
+                Version: version,
+                Title: model.Title.Trim(),
+                DescriptionMarkdown: model.DescriptionMarkdown?.Trim() ?? string.Empty,
+                Company: string.IsNullOrWhiteSpace(model.Company) ? null : model.Company.Trim(),
+                Level: string.IsNullOrWhiteSpace(model.Level) ? null : model.Level.Trim(),
+                IsPublic: model.IsPublic,
+                MaxProjectCount: model.MaxProjectCount,
+                Attributes: model.ToAttributeInputs(),
+                AccessRules: model.ToRuleInputs(),
+                Tags: model.GetTags()));
+
+            if (result.IsSuccess)
+            {
+                version = result.Value.Version;
+                title = result.Value.Title;
+                updatedAt = result.Value.UpdatedAt;
+                Navigation.NavigateTo("positions");
+            }
+            else
+            {
+                isConcurrencyConflict = result.Error?.Code == "ConcurrencyConflict";
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Pos_Unexpected"]);
+            }
+        }
+        catch
+        {
+            errorMessage = T["Pos_Unexpected"];
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task LoadMyCvAsync()
+    {
+        myCvId = null;
+        myCvError = null;
+
+        try
+        {
+            var state = await AuthState.GetAuthenticationStateAsync();
+            if (state.User.Identity?.IsAuthenticated != true)
+            {
+                return;
+            }
+            var idValue = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idValue, out var userId))
+            {
+                return;
+            }
+
+            var result = await Sender.Send(new GetMyCvQuery(userId, Id));
+            if (result.IsSuccess)
+            {
+                myCvId = result.Value;
+            }
+        }
+        catch
+        {
+            myCvError = T["Pos_Unexpected"];
+        }
+    }
+
+    private async Task CreateMyCvAsync()
+    {
+        myCvBusy = true;
+        myCvError = null;
+
+        try
+        {
+            var state = await AuthState.GetAuthenticationStateAsync();
+            var idValue = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idValue, out var userId))
+            {
+                Navigation.NavigateTo("/account/login?returnUrl=" + Uri.EscapeDataString($"/positions/{Id}"), forceLoad: true);
+                return;
+            }
+
+            var result = await Sender.Send(new CreateCvCommand(userId, Id));
+            if (result.IsSuccess)
+            {
+                Navigation.NavigateTo($"cvs/{result.Value}");
+            }
+            else
+            {
+                myCvError = LocalizedError.Message(T, result.Error?.Code, T["Pos_Unexpected"]);
+            }
+        }
+        catch
+        {
+            myCvError = T["Pos_Unexpected"];
+        }
+        finally
+        {
+            myCvBusy = false;
+        }
+    }
+
+    private async Task LoadCvsAsync()
+    {
+        try
+        {
+            var result = await Sender.Send(await BuildListCvsQueryAsync(
+                string.IsNullOrWhiteSpace(cvSearch) ? null : cvSearch.Trim()));
+            if (result.IsSuccess)
+            {
+                filteredCvs = result.Value;
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private async Task OnCvSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoadCvsAsync();
+        }
+        else
+        {
+            await LoadCvsAsync();
+        }
+    }
+
+    private async Task ClearCvSearch()
+    {
+        cvSearch = string.Empty;
+        await LoadCvsAsync();
+    }
+
+    private async Task LoadMessagesAsync()
+    {
+        try
+        {
+            var result = await Sender.Send(new ListDiscussionMessagesQuery(Id));
+            if (result.IsSuccess)
+            {
+                messages = result.Value;
+                discussionError = null;
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private string LevelBadge() => level switch
+    {
+        "Junior" => "text-bg-success",
+        "Middle" => "text-bg-warning",
+        "Senior" => "text-bg-danger",
+        "C-level" => "text-bg-dark",
+        _ => "text-bg-secondary"
+    };
+
+    private async Task<ListPositionCvsQuery> BuildListCvsQueryAsync(string? searchText)
+    {
+        try
+        {
+            var state = await AuthState.GetAuthenticationStateAsync();
+            var idValue = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            _ = int.TryParse(idValue, out var userId);
+            return new ListPositionCvsQuery(
+                Id,
+                searchText,
+                userId,
+                state.User.IsInRole(Domain.Constants.UserRoles.Recruiter),
+                state.User.IsInRole(Domain.Constants.UserRoles.Administrator));
+        }
+        catch
+        {
+            return new ListPositionCvsQuery(Id, searchText);
+        }
+    }
+
+    private void StartDiscussionPolling()
+    {
+        discussionCts?.Cancel();
+        discussionCts?.Dispose();
+        discussionCts = new CancellationTokenSource();
+        var token = discussionCts.Token;
+        _ = Task.Run(async () =>
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(3));
+            try
+            {
+                while (await timer.WaitForNextTickAsync(token))
+                {
+                    await InvokeAsync(LoadMessagesAsync);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }, token);
+    }
+
+    private async Task PostMessageAsync()
+    {
+        var text = newMessage?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(text) || isPosting)
+        {
+            return;
+        }
+
+        isPosting = true;
+        discussionError = null;
+
+        try
+        {
+            var state = await AuthState.GetAuthenticationStateAsync();
+            var idValue = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idValue, out var userId))
+            {
+                Navigation.NavigateTo("/account/login?returnUrl=" + Uri.EscapeDataString($"/positions/{Id}"), forceLoad: true);
+                return;
+            }
+
+            var result = await Sender.Send(new PostDiscussionMessageCommand(Id, userId, text));
+            if (!result.IsSuccess)
+            {
+                discussionError = LocalizedError.Message(T, result.Error?.Code, T["Pos_Unexpected"]);
+                return;
+            }
+
+            newMessage = string.Empty;
+            await LoadMessagesAsync();
+        }
+        catch
+        {
+            discussionError = T["Pos_Unexpected"];
+        }
+        finally
+        {
+            isPosting = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        discussionCts?.Cancel();
+        discussionCts?.Dispose();
+    }
+}

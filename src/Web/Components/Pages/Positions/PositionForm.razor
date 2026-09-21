@@ -1,0 +1,210 @@
+@using Domain.Contracts.AttributeContracts
+@using Domain.Enums
+@inject IStringLocalizer<SharedResource> T
+
+<EditForm Model="Model" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger mb-3" />
+
+    <div class="mb-3">
+        <label class="form-label">@T["Pos_FieldTitle"]</label>
+        <InputText @bind-Value="Model.Title" class="form-control" maxlength="250" />
+        <ValidationMessage For="() => Model.Title" class="text-danger" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">@T["Pos_FieldDescription"]</label>
+        <InputTextArea @bind-Value="Model.DescriptionMarkdown" class="form-control" rows="5" />
+        <div class="form-text">@T["Pos_DescriptionHint"]</div>
+        <ValidationMessage For="() => Model.DescriptionMarkdown" class="text-danger" />
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-6">
+            <label class="form-label">@T["Pos_FieldCompany"]</label>
+            <InputText @bind-Value="Model.Company" class="form-control" maxlength="200" placeholder="@T["Pos_CompanyPlaceholder"]" />
+            <ValidationMessage For="() => Model.Company" class="text-danger" />
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">@T["Pos_FieldLevel"]</label>
+            <InputSelect @bind-Value="Model.Level" class="form-select">
+                <option value="">@T["Pos_LevelAny"]</option>
+                <option value="Junior">Junior</option>
+                <option value="Middle">Middle</option>
+                <option value="Senior">Senior</option>
+                <option value="C-level">C-level</option>
+            </InputSelect>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-6">
+            <div class="form-check mt-4">
+                <InputCheckbox @bind-Value="Model.IsPublic" class="form-check-input" id="pos-public" />
+                <label class="form-check-label" for="pos-public">@T["Pos_FieldPublic"]</label>
+            </div>
+            <div class="form-text">@T["Pos_PublicHint"]</div>
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">@T["Pos_FieldMaxProjects"]</label>
+            <InputNumber @bind-Value="Model.MaxProjectCount" class="form-control" min="1" max="50" />
+            <div class="form-text">@T["Pos_MaxProjectsHint"]</div>
+            <ValidationMessage For="() => Model.MaxProjectCount" class="text-danger" />
+        </div>
+    </div>
+
+    <h2 class="h5 mt-4">@T["Pos_AttrsHeading"]</h2>
+    <p class="text-body-secondary small">@T["Pos_AttrsLead"]</p>
+
+    @if (Library.Count == 0)
+    {
+        <p class="text-body-secondary"><em>@T["Pos_NoLibrary"]</em></p>
+    }
+    else
+    {
+        <div class="table-responsive mb-2" style="max-height: 22rem; overflow-y: auto;">
+            <table class="table table-sm table-hover align-middle">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th scope="col" style="width: 2.5rem;"></th>
+                        <th scope="col">@T["Pos_ColAttr"]</th>
+                        <th scope="col">@T["Pos_ColType"]</th>
+                        <th scope="col" class="text-center">@T["Pos_ColRequired"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Library)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input"
+                                    checked="@Model.SelectedAttributeIds.Contains(a.Id)"
+                                    @onchange="() => ToggleAttribute(a.Id)" />
+                            </td>
+                            <td>
+                                <span class="fw-bold">@a.Name</span>
+                                <span class="badge text-bg-secondary ms-1">@a.Category</span>
+                            </td>
+                            <td><span class="badge text-bg-light border">@a.DataType</span></td>
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input"
+                                    disabled="@(!Model.SelectedAttributeIds.Contains(a.Id))"
+                                    checked="@Model.RequiredAttributeIds.Contains(a.Id)"
+                                    @onchange="() => ToggleRequired(a.Id)" />
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <h2 class="h5 mt-4">@T["Pos_RulesHeading"]</h2>
+    <p class="text-body-secondary small">@T["Pos_RulesLead"]</p>
+
+    @foreach (var (rule, index) in Model.AccessRules.Select((r, i) => (r, i)))
+    {
+        <div class="row g-2 align-items-end mb-2" @key="index">
+            <div class="col-12 col-md-5">
+                <label class="form-label">@T["Pos_RuleAttr"]</label>
+                <select class="form-select" @bind="rule.AttributeDefinitionId">
+                    <option value="0">@T["Pos_SelectAttr"]</option>
+                    @foreach (var a in Library)
+                    {
+                        <option value="@a.Id">@a.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label">@T["Pos_RuleOp"]</label>
+                <select class="form-select" @bind="rule.Operator">
+                    @foreach (var op in Enum.GetValues<Operator>())
+                    {
+                        <option value="@op">@op</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label">@T["Pos_RuleValue"]</label>
+                <input class="form-control" @bind="rule.Value" maxlength="200" />
+            </div>
+            <div class="col-12 col-md-1 d-grid">
+                <button type="button" class="btn btn-outline-danger" @onclick="() => RemoveRule(index)" title="@T["Pos_RemoveRule"]">&times;</button>
+            </div>
+        </div>
+    }
+    <button type="button" class="btn btn-sm btn-outline-secondary mb-2" @onclick="AddRule">@T["Pos_AddRule"]</button>
+
+    @if (!Model.IsPublic && Model.AccessRules.Count == 0)
+    {
+        <div class="alert alert-warning py-2">@T["Pos_PrivateNoRules"]</div>
+    }
+
+    <h2 class="h5 mt-4">@T["Pos_TagsHeading"]</h2>
+    <div class="mb-3">
+        <label class="form-label">@T["Pos_FieldTags"]</label>
+        <InputText @bind-Value="Model.TagsText" class="form-control" list="pos-tag-suggestions" />
+        <datalist id="pos-tag-suggestions">
+            @foreach (var s in TagSuggestions)
+            {
+                <option value="@s" />
+            }
+        </datalist>
+        <div class="form-text">@T["Pos_TagsHint"]</div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary" disabled="@IsSaving">
+            @if (IsSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            @T["Pos_Save"]
+        </button>
+        <a class="btn btn-outline-secondary" href="positions">@T["Pos_Cancel"]</a>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired]
+    public PositionFormModel Model { get; set; } = new();
+
+    [Parameter]
+    public List<AttributeDto> Library { get; set; } = new();
+
+    [Parameter]
+    public List<string> TagSuggestions { get; set; } = new();
+
+    [Parameter]
+    public bool IsSaving { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnValidSubmit { get; set; }
+
+    private void ToggleAttribute(int id)
+    {
+        if (!Model.SelectedAttributeIds.Add(id))
+        {
+            Model.SelectedAttributeIds.Remove(id);
+            Model.RequiredAttributeIds.Remove(id);
+        }
+    }
+
+    private void ToggleRequired(int id)
+    {
+        if (!Model.RequiredAttributeIds.Add(id))
+        {
+            Model.RequiredAttributeIds.Remove(id);
+        }
+    }
+
+    private void AddRule()
+    {
+        Model.AccessRules.Add(new AccessRuleRow());
+    }
+
+    private void RemoveRule(int index)
+    {
+        if (index >= 0 && index < Model.AccessRules.Count)
+        {
+            Model.AccessRules.RemoveAt(index);
+        }
+    }
+}

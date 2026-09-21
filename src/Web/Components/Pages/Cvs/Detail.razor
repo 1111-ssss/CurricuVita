@@ -1,0 +1,618 @@
+@page "/cvs/{Id:int}"
+
+@using MediatR
+@using Domain.Contracts.CvContracts
+@using Domain.Contracts.AttributeContracts
+@using Domain.Enums
+@using Domain.Constants
+@using Domain.Interfaces.Services
+@using Application.Features.Cvs.GetCvDetail
+@using Application.Features.Cvs.PublishCv
+@using Application.Features.Cvs.DeleteCv
+@using Application.Features.Likes.ToggleLike
+@using Application.Features.Profile.SaveAttributeValues
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject ISender Sender
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+@inject IFileStorageService Files
+
+<PageTitle>@T["Cv_Title"]</PageTitle>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+        @if (isConflict)
+        {
+            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="ReloadAsync">@T["Cv_Reload"]</button>
+        }
+    </div>
+}
+@if (!string.IsNullOrEmpty(infoMessage))
+{
+    <div class="alert alert-success">@infoMessage</div>
+}
+
+@if (isLoading)
+{
+    <p><em>@T["Cv_Loading"]</em></p>
+}
+else if (detail is not null)
+{
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <div>@T["Cv_DynamicHint"]</div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 border-bottom pb-3">
+        <div>
+            <h1 class="h3 mb-1">@detail.CandidateName — @detail.PositionTitle
+                <span class="badge @(detail.Status == CvStatus.Published ? "text-bg-success" : "text-bg-danger") ms-1">
+                    @(detail.Status == CvStatus.Published ? T["Cv_Published"] : T["Cv_Draft"])
+                </span>
+            </h1>
+            <p class="text-muted mb-0">
+                <span>@T["Cv_UpdatedAt"]: @detail.UpdatedAt.ToString("g")</span>
+                <span class="ms-2"><i class="bi bi-heart-fill text-danger me-1"></i>@T["Pos_CvLikes"]: <strong>@detail.LikesCount</strong></span>
+            </p>
+        </div>
+    </div>
+
+    @if (detail.IsHidden)
+    {
+        <div class="alert alert-warning">@T["Cv_Hidden"]</div>
+    }
+
+    <div class="btn-toolbar gap-2 mb-3" role="toolbar" aria-label="cv actions">
+        <a class="btn btn-outline-secondary" href="@($"positions/{detail.PositionId}")"><i class="bi bi-arrow-left me-1"></i>@T["Cv_BackToPosition"]</a>
+        <a class="btn btn-outline-secondary" href="profile"><i class="bi bi-person me-1"></i>@T["Cv_BackToProfile"]</a>
+        @if (detail.CanEdit)
+        {
+            <button class="btn btn-success" @onclick="PublishAsync" disabled="@(!detail.CanPublish || isSaving)" title="@T["Cv_FillRequired"]"><i class="bi bi-check-circle me-1"></i>@T["Cv_Publish"]</button>
+            <button class="btn btn-outline-danger" @onclick="() => confirmDelete = true" disabled="@isSaving"><i class="bi bi-trash me-1"></i>@T["Cv_Delete"]</button>
+        }
+        @if (detail.CanLike)
+        {
+            <button class="btn @(detail.IsLikedByRequester ? "btn-primary" : "btn-outline-primary")" @onclick="ToggleLikeAsync" disabled="@isSaving">
+                <i class="bi bi-heart@(detail.IsLikedByRequester ? "-fill" : "") me-1"></i>@(detail.IsLikedByRequester ? T["Cv_Unlike"] : T["Cv_Like"]) (@detail.LikesCount)
+            </button>
+        }
+    </div>
+
+    @if (!detail.CanPublish && detail.CanEdit && detail.Status == CvStatus.Draft)
+    {
+        <div class="alert alert-info">@T["Cv_FillRequired"]</div>
+    }
+
+    @if (confirmDelete)
+    {
+        <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2">
+            <span class="me-auto">@T["Cv_DeleteConfirm"]</span>
+            <button class="btn btn-sm btn-danger" @onclick="DeleteAsync" disabled="@isSaving">@T["Cv_ConfirmYes"]</button>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="() => confirmDelete = false">@T["Cv_Cancel"]</button>
+        </div>
+    }
+
+    <div class="card section-card mb-4">
+        <div class="card-body">
+            <h2 class="h5 text-primary">@T["Cv_PositionHeading"]</h2>
+            <Web.Components.Shared.MarkdownView Markdown="@detail.PositionDescriptionMarkdown" />
+            @if (detail.PositionTags.Count > 0)
+            {
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                    <span class="text-body-secondary me-1">@T["Cv_ProjectFilter"]:</span>
+                    @foreach (var tag in detail.PositionTags)
+                    {
+                        <span class="badge text-bg-light border">@tag</span>
+                    }
+                    @if (detail.MaxProjectCount.HasValue)
+                    {
+                        <span class="badge text-bg-info">max @detail.MaxProjectCount</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card section-card mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <h2 class="h5 text-primary mb-0">@T["Cv_AttributesHeading"]</h2>
+                @if (detail.CanEdit)
+                {
+                    <button class="btn btn-sm btn-outline-primary ms-auto" @onclick="SaveNowAsync" disabled="@(isSaving || !rows.Any(r => r.IsDirty))">@T["Cv_SaveNow"]</button>
+                }
+            </div>
+            @if (isSaving)
+            {
+                <p class="text-body-secondary"><span class="spinner-border spinner-border-sm me-1"></span>@T["Cv_Saving"]</p>
+            }
+            @foreach (var row in rows)
+            {
+                <div class="border rounded p-3 mb-3 @(row.IsMissingRequired ? "border-danger bg-danger-subtle" : "")" @key="row.DefinitionId">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <strong>@row.Name</strong>
+                        @if (row.IsRequired)
+                        {
+                            <span class="badge text-bg-warning">@T["Cv_Required"]</span>
+                        }
+                        @if (row.IsMissingRequired)
+                        {
+                            <span class="badge text-bg-danger">@T["Cv_Empty"]</span>
+                        }
+                        <span class="badge text-bg-secondary">@row.Category</span>
+                    </div>
+                    @if (detail.CanEdit)
+                    {
+                        @switch (row.DataType)
+                        {
+                            case AttributeDataType.String:
+                                <input class="form-control @(row.IsMissingRequired ? "empty-required is-invalid" : "")" @bind="row.StringValue" @bind:after="() => row.IsDirty = true" maxlength="2000" />
+                                break;
+                            case AttributeDataType.Text:
+                                <textarea class="form-control @(row.IsMissingRequired ? "empty-required is-invalid" : "")" rows="4" @bind="row.TextValue" @bind:after="() => row.IsDirty = true" maxlength="20000"></textarea>
+                                break;                            case AttributeDataType.Image:
+                                <div class="d-flex align-items-center gap-3">
+                                    @if (!string.IsNullOrEmpty(row.ImageValue))
+                                    {
+                                        <img src="@row.ImageValue" alt="@row.Name" class="rounded" style="width: 4rem; height: 4rem; object-fit: cover;" />
+                                    }
+                                    <InputFile OnChange="(e) => OnRowImageSelected(e, row)" accept="image/*" disabled="@row.IsUploading" />
+                                </div>
+                                break;
+                            case AttributeDataType.Numeric:
+                                <InputNumber class="@($"form-control{(row.IsMissingRequired ? " empty-required is-invalid" : "")}")" @bind-Value="row.NumericValue" @bind-Value:after="() => row.IsDirty = true" />
+                                break;
+                            case AttributeDataType.Date:
+                                <InputDate class="@($"form-control{(row.IsMissingRequired ? " empty-required is-invalid" : "")}")" @bind-Value="row.DateValue" @bind-Value:after="() => row.IsDirty = true" />
+                                break;
+                            case AttributeDataType.Period:
+                                <div class="row g-2">
+                                    <div class="col-6"><InputDate class="form-control" @bind-Value="row.PeriodStartValue" @bind-Value:after="() => row.IsDirty = true" /></div>
+                                    <div class="col-6"><InputDate class="form-control" @bind-Value="row.PeriodEndValue" @bind-Value:after="() => row.IsDirty = true" /></div>
+                                </div>
+                                break;
+                            case AttributeDataType.Boolean:
+                                <div class="form-check"><InputCheckbox class="form-check-input" @bind-Value="row.BooleanValue" @bind-Value:after="() => row.IsDirty = true" /></div>
+                                break;
+                            case AttributeDataType.Dropdown:
+                                <select class="form-select @(row.IsMissingRequired ? "empty-required is-invalid" : "")" value="@row.DropdownValue" @onchange="(e) => { row.DropdownValue = e.Value?.ToString(); row.IsDirty = true; }">
+                                    <option value="">@T["Cv_Select"]</option>
+                                    @foreach (var o in row.Options)
+                                    {
+                                        <option value="@o" selected="@(row.DropdownValue == o)">@o</option>
+                                    }
+                                </select>
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        <div>
+                            @if (row.DataType == AttributeDataType.Image && !string.IsNullOrEmpty(row.ImageValue))
+                            {
+                                <img src="@row.ImageValue" alt="@row.Name" class="rounded" style="max-width: 12rem;" />
+                            }
+                            else if (row.DataType == AttributeDataType.Boolean)
+                            {
+                                <span>@(row.BooleanValue == true ? "✓" : "—")</span>
+                            }
+                            else if (row.DataType == AttributeDataType.Text)
+                            {
+                                <Web.Components.Shared.MarkdownView Markdown="@row.DisplayText" />
+                            }
+                            else
+                            {
+                                <span style="white-space: pre-wrap;">@row.DisplayText</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card section-card mb-4">
+        <div class="card-body">
+            <h2 class="h5 text-primary">@T["Cv_ProjectsHeading"] (@detail.Projects.Count)</h2>
+            <p class="text-body-secondary">@T["Cv_ProjectsLead"]</p>
+            @if (detail.PositionTags.Count > 0)
+            {
+                <div class="alert alert-warning py-2 small">
+                    <i class="bi bi-funnel me-1"></i>@T["Cv_ProjectFilter"]:
+                    @foreach (var tag in detail.PositionTags)
+                    {
+                        <strong class="ms-1">@tag</strong>
+                    }
+                    @if (detail.MaxProjectCount.HasValue)
+                    {
+                        <span class="badge text-bg-info ms-1">max @detail.MaxProjectCount</span>
+                    }
+                </div>
+            }
+            @if (detail.Projects.Count == 0)
+            {
+                <p class="text-body-secondary"><em>@T["Cv_NoProjects"]</em></p>
+            }
+            else
+            {
+                @foreach (var p in detail.Projects)
+                {
+                    <div class="card project-card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title fw-bold">@p.Title</h6>
+                            <p class="text-muted small mb-2"><i class="bi bi-calendar-range me-1"></i>@FormatPeriod(p.StartDate, p.EndDate)</p>
+                            <div class="d-flex flex-wrap gap-1 my-1">
+                                @foreach (var tag in p.Tags)
+                                {
+                                    <span class="badge text-bg-secondary">@tag</span>
+                                }
+                            </div>
+                            <div class="markdown-body small">
+                                <Web.Components.Shared.MarkdownView Markdown="@p.DescriptionMarkdown" />
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private CvDetailDto? detail;
+    private List<AttrRow> rows = new();
+    private bool isLoading = true;
+    private bool isSaving;
+    private bool isConflict;
+    private bool confirmDelete;
+    private string? errorMessage;
+    private string? infoMessage;
+    private int requesterId;
+    private bool isAdmin;
+    private bool isRecruiter;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        infoMessage = null;
+        isConflict = false;
+        confirmDelete = false;
+
+        try
+        {
+            var state = await AuthState.GetAuthenticationStateAsync();
+            var idValue = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idValue, out requesterId))
+            {
+                Navigation.NavigateTo("/account/login?returnUrl=" + Uri.EscapeDataString($"/cvs/{Id}"), forceLoad: true);
+                return;
+            }
+            isAdmin = state.User.IsInRole(UserRoles.Administrator);
+            isRecruiter = state.User.IsInRole(UserRoles.Recruiter);
+
+            var result = await Sender.Send(new GetCvDetailQuery(Id, requesterId, isAdmin, isRecruiter));
+            if (result.IsSuccess)
+            {
+                detail = result.Value;
+                rows = detail.Attributes.Select(AttrRow.FromDto).ToList();
+            }
+            else
+            {
+                detail = null;
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Cv_Unexpected"]);
+            }
+        }
+        catch
+        {
+            errorMessage = T["Cv_Unexpected"];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveNowAsync()
+    {
+        if (detail is null || !detail.CanEdit || isSaving)
+        {
+            return;
+        }
+
+        var dirty = rows.Where(r => r.IsDirty).ToList();
+        if (dirty.Count == 0)
+        {
+            return;
+        }
+
+        isSaving = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await Sender.Send(new SaveAttributeValuesCommand(
+                detail.UserId,
+                dirty.Select(r => new AttributeValueInput(
+                    r.ValueId,
+                    r.DefinitionId,
+                    r.ValueId.HasValue ? r.Version : null,
+                    r.StringValue,
+                    r.TextValue,
+                    r.ImageValue,
+                    r.NumericValue,
+                    r.DateValue,
+                    r.PeriodStartValue,
+                    r.PeriodEndValue,
+                    r.DataType == AttributeDataType.Boolean ? r.BooleanValue : null,
+                        r.DropdownValue)).ToList(), requesterId, isAdmin));
+
+            if (!result.IsSuccess)
+            {
+                if (result.Error?.Code == "ConcurrencyConflict")
+                {
+                    isConflict = true;
+                    errorMessage = T["Cv_Conflict"];
+                }
+                else
+                {
+                    errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Cv_Unexpected"]);
+                }
+                return;
+            }
+
+            await ReloadAsync();
+            infoMessage = T["Cv_Saved"];
+        }
+        catch
+        {
+            errorMessage = T["Cv_Unexpected"];
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task OnRowImageSelected(InputFileChangeEventArgs e, AttrRow row)
+    {
+        var file = e.File;
+        if (file is null)
+        {
+            return;
+        }
+        row.IsUploading = true;
+        try
+        {
+            await using var stream = file.OpenReadStream(5 * 1024 * 1024);
+            var upload = await Files.UploadAvatar(stream, file.Name);
+            if (!upload.IsSuccess)
+            {
+                errorMessage = LocalizedError.Message(T, upload.Error?.Code, T["Cv_Unexpected"]);
+                return;
+            }
+            row.ImageValue = upload.Value.Url;
+            row.IsDirty = true;
+        }
+        catch
+        {
+            errorMessage = T["Cv_Unexpected"];
+        }
+        finally
+        {
+            row.IsUploading = false;
+        }
+    }
+
+    private async Task PublishAsync()
+    {
+        if (detail is null || isSaving)
+        {
+            return;
+        }
+        isSaving = true;
+        errorMessage = null;
+        try
+        {
+            var dirty = rows.Where(r => r.IsDirty).ToList();
+            if (dirty.Count > 0)
+            {
+                var save = await Sender.Send(new SaveAttributeValuesCommand(
+                    detail.UserId,
+                    dirty.Select(r => new AttributeValueInput(
+                        r.ValueId, r.DefinitionId, r.ValueId.HasValue ? r.Version : null,
+                        r.StringValue, r.TextValue, r.ImageValue, r.NumericValue, r.DateValue,
+                        r.PeriodStartValue, r.PeriodEndValue,
+                        r.DataType == AttributeDataType.Boolean ? r.BooleanValue : null,
+                    r.DropdownValue)).ToList(), requesterId, isAdmin));
+                if (!save.IsSuccess)
+                {
+                    errorMessage = LocalizedError.Message(T, save.Error?.Code, T["Cv_Unexpected"]);
+                    return;
+                }
+            }
+
+            var fresh = await Sender.Send(new GetCvDetailQuery(Id, requesterId, isAdmin, isRecruiter));
+            if (!fresh.IsSuccess)
+            {
+                errorMessage = LocalizedError.Message(T, fresh.Error?.Code, T["Cv_Unexpected"]);
+                return;
+            }
+            detail = fresh.Value;
+
+            var result = await Sender.Send(new PublishCvCommand(Id, requesterId, isAdmin, detail.Version));
+            if (!result.IsSuccess)
+            {
+                if (result.Error?.Code == "ConcurrencyConflict")
+                {
+                    isConflict = true;
+                }
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Cv_Unexpected"]);
+                return;
+            }
+
+            await ReloadAsync();
+            infoMessage = T["Cv_PublishedInfo"];
+        }
+        catch
+        {
+            errorMessage = T["Cv_Unexpected"];
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (detail is null || isSaving)
+        {
+            return;
+        }
+        isSaving = true;
+        try
+        {
+            var result = await Sender.Send(new DeleteCvCommand(Id, requesterId, isAdmin, detail.Version));
+            if (!result.IsSuccess)
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Cv_Unexpected"]);
+                return;
+            }
+            Navigation.NavigateTo("profile");
+        }
+        catch
+        {
+            errorMessage = T["Cv_Unexpected"];
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task ToggleLikeAsync()
+    {
+        if (detail is null || isSaving)
+        {
+            return;
+        }
+        isSaving = true;
+        errorMessage = null;
+        try
+        {
+            var result = await Sender.Send(new ToggleLikeCvCommand(Id, requesterId, isRecruiter, isAdmin));
+            if (!result.IsSuccess)
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Cv_Unexpected"]);
+                return;
+            }
+            await ReloadAsync();
+        }
+        catch
+        {
+            errorMessage = T["Cv_Unexpected"];
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private static string FormatPeriod(DateTime? start, DateTime? end)
+    {
+        if (start is null && end is null)
+        {
+            return string.Empty;
+        }
+        return $"{start?.ToString("d") ?? "…"} — {end?.ToString("d") ?? "…"}";
+    }
+
+    private sealed class AttrRow
+    {
+        public int DefinitionId { get; set; }
+        public int? ValueId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public AttributeDataType DataType { get; set; }
+        public List<string> Options { get; set; } = new();
+        public int? Version { get; set; }
+        public string? StringValue { get; set; }
+        public string? TextValue { get; set; }
+        public string? ImageValue { get; set; }
+        public decimal? NumericValue { get; set; }
+        public DateTime? DateValue { get; set; }
+        public DateTime? PeriodStartValue { get; set; }
+        public DateTime? PeriodEndValue { get; set; }
+        public bool BooleanValue { get; set; }
+        public string? DropdownValue { get; set; }
+        public bool IsRequired { get; set; }
+        public bool IsFilled { get; set; }
+        public bool IsDirty { get; set; }
+        public bool IsUploading { get; set; }
+
+        public bool IsMissingRequired => IsRequired && !IsFilledAfterEdit();
+
+        public string DisplayText => DataType switch
+        {
+            AttributeDataType.String => StringValue ?? string.Empty,
+            AttributeDataType.Text => TextValue ?? string.Empty,
+            AttributeDataType.Numeric => NumericValue?.ToString() ?? string.Empty,
+            AttributeDataType.Date => DateValue?.ToString("d") ?? string.Empty,
+            AttributeDataType.Period => FormatPeriod(PeriodStartValue, PeriodEndValue),
+            AttributeDataType.Dropdown => DropdownValue ?? string.Empty,
+            _ => string.Empty
+        };
+
+        private bool IsFilledAfterEdit() => DataType switch
+        {
+            AttributeDataType.String => !string.IsNullOrWhiteSpace(StringValue),
+            AttributeDataType.Text => !string.IsNullOrWhiteSpace(TextValue),
+            AttributeDataType.Image => !string.IsNullOrWhiteSpace(ImageValue),
+            AttributeDataType.Numeric => NumericValue.HasValue,
+            AttributeDataType.Date => DateValue.HasValue,
+            AttributeDataType.Period => PeriodStartValue.HasValue || PeriodEndValue.HasValue,
+            AttributeDataType.Boolean => ValueId.HasValue || IsDirty,
+            AttributeDataType.Dropdown => !string.IsNullOrWhiteSpace(DropdownValue),
+            _ => false
+        };
+
+        public static AttrRow FromDto(CvAttributeDto dto) => new()
+        {
+            DefinitionId = dto.AttributeDefinitionId,
+            ValueId = dto.ValueId,
+            Name = dto.Name,
+            Category = dto.Category,
+            DataType = dto.DataType,
+            Options = dto.Options,
+            Version = dto.Version,
+            StringValue = dto.StringValue,
+            TextValue = dto.TextValue,
+            ImageValue = dto.ImageValue,
+            NumericValue = dto.NumericValue,
+            DateValue = dto.DateValue,
+            PeriodStartValue = dto.PeriodStartValue,
+            PeriodEndValue = dto.PeriodEndValue,
+            BooleanValue = dto.BooleanValue ?? false,
+            DropdownValue = dto.DropdownValue,
+            IsRequired = dto.IsRequired,
+            IsFilled = dto.IsFilled
+        };
+    }
+}

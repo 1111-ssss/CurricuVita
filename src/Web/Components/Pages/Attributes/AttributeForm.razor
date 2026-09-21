@@ -1,0 +1,83 @@
+@using Domain.Enums
+@inject IStringLocalizer<SharedResource> T
+
+<EditForm Model="Model" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger mb-3" />
+
+    <div class="mb-3">
+        <label class="form-label">@T["Attr_FieldCategory"]</label>
+        <InputText @bind-Value="Model.Category" class="form-control" list="attr-categories" />
+        <datalist id="attr-categories">
+            @foreach (var c in Categories)
+            {
+                <option value="@c" />
+            }
+        </datalist>
+        <ValidationMessage For="() => Model.Category" class="text-danger" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">@T["Attr_FieldName"]</label>
+        <InputText @bind-Value="Model.Name" class="form-control" />
+        <ValidationMessage For="() => Model.Name" class="text-danger" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">@T["Attr_FieldDescription"]</label>
+        <InputTextArea @bind-Value="Model.Description" class="form-control" rows="3" />
+        <ValidationMessage For="() => Model.Description" class="text-danger" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">@T["Attr_FieldType"]</label>
+        <InputSelect @bind-Value="Model.DataType" class="form-select" disabled="@LockDataType">
+            @foreach (var value in Enum.GetValues<AttributeDataType>())
+            {
+                <option value="@value">@value</option>
+            }
+        </InputSelect>
+        @if (LockDataType)
+        {
+            <div class="form-text">@T["Attr_TypeLockedHint"]</div>
+        }
+        @if (Model.DataType == AttributeDataType.Image)
+        {
+            <div class="form-text">@T["Attr_ImageHint"]</div>
+        }
+    </div>
+
+    @if (Model.DataType == AttributeDataType.Dropdown)
+    {
+        <div class="mb-3">
+            <label class="form-label">@T["Attr_FieldOptions"]</label>
+            <InputTextArea @bind-Value="Model.OptionsText" class="form-control" rows="5" />
+            <div class="form-text">@T["Attr_OptionsHint"]</div>
+        </div>
+    }
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary" disabled="@IsSaving">
+            @if (IsSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            @T["Attr_Save"]
+        </button>
+        <a class="btn btn-outline-secondary" href="attributes">@T["Attr_Cancel"]</a>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired]
+    public AttributeFormModel Model { get; set; } = new();
+
+    [Parameter]
+    public List<string> Categories { get; set; } = new();
+
+    [Parameter]
+    public bool LockDataType { get; set; }
+
+    [Parameter]
+    public bool IsSaving { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnValidSubmit { get; set; }
+}

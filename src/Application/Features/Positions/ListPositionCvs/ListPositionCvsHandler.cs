@@ -21,6 +21,11 @@ public class ListPositionCvsHandler : IRequestHandler<ListPositionCvsQuery, Resu
         CancellationToken cancellationToken
     )
     {
+        if (!request.IsRecruiter && !request.IsAdmin)
+        {
+            return Result<List<PositionCvListItemDto>>.Failure(Errors.PositionCvsForbidden);
+        }
+
         if (!await _positions.AnyAsync(new PositionExistsSpec(request.PositionId), cancellationToken))
         {
             return Result<List<PositionCvListItemDto>>.Failure(Errors.PositionNotFound);
