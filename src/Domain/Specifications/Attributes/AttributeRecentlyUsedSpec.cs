@@ -7,7 +7,8 @@ public sealed class AttributeRecentlyUsedSpec : Specification<AttributeDefinitio
 {
     public AttributeRecentlyUsedSpec(int take)
     {
-        Query.OrderByDescending(a => a.PositionAttributes.Count + a.UserValues.Count)
+        Query.OrderByDescending(a => a.UpdatedAt)
+            .ThenByDescending(a => a.PositionAttributes.Count + a.UserValues.Count)
             .ThenByDescending(a => a.CreatedAt);
 
         Query.Take(take);

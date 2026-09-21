@@ -60,6 +60,9 @@ namespace Infrastructure.Migrations
                     b.Property<string>("OptionsJson")
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("integer");

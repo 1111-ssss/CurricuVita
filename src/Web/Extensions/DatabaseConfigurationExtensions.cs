@@ -11,7 +11,8 @@ public static class DatabaseConfigurationExtensions
 {
     public static IServiceCollection AddDatabaseConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
-        services.ConfigureDbContext(configuration);
+        var connectionString = configuration["ConnectionStrings:DefaultConnection"];
+        services.ConfigureDbContext(connectionString!);
 
         services.AddScoped(typeof(IRepositoryBase<>), typeof(BaseRepository<>));
 

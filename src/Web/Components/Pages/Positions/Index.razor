@@ -1,0 +1,365 @@
+@page "/positions"
+
+@using MediatR
+@using Domain.Contracts.PositionContracts
+@using Application.Features.Positions.ListPositions
+@using Application.Features.Positions.DeletePosition
+@using Application.Features.Positions.DuplicatePosition
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject ISender Sender
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Pos_Title"]</PageTitle>
+
+<h1>@T["Pos_Heading"]</h1>
+<p class="lead text-body-secondary">@T["Pos_Lead"]</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="pos-search">@T["Pos_SearchLabel"]</label>
+                <input id="pos-search" class="form-control" @bind="searchPrefix"
+                    @bind:event="oninput" @onkeyup="OnSearchKeyUp"
+                    placeholder="@T["Pos_SearchPlaceholder"]" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="pos-company">@T["Pos_FieldCompany"]</label>
+                <input id="pos-company" class="form-control" @bind="companyFilter"
+                    @bind:event="oninput" @onkeyup="OnSearchKeyUp"
+                    placeholder="@T["Pos_CompanyPlaceholder"]" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="pos-level">@T["Pos_FieldLevel"]</label>
+                <select id="pos-level" class="form-select" @bind="levelFilter" @bind:after="LoadAsync">
+                    <option value="">@T["Pos_LevelAny"]</option>
+                    <option value="Junior">Junior</option>
+                    <option value="Middle">Middle</option>
+                    <option value="Senior">Senior</option>
+                    <option value="C-level">C-level</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="form-check mt-4">
+                    <input id="pos-public-only" type="checkbox" class="form-check-input" @bind="onlyPublic" @bind:after="LoadAsync" />
+                    <label class="form-check-label" for="pos-public-only">@T["Pos_PublicOnly"]</label>
+                </div>
+            </div>
+            <div class="col-12 col-md-3 d-flex gap-2">
+                <button class="btn btn-outline-primary flex-fill" @onclick="LoadAsync">@T["Pos_SearchButton"]</button>
+                <button class="btn btn-outline-secondary flex-fill" @onclick="ClearFilters">@T["Pos_ClearButton"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(infoMessage))
+{
+    <div class="alert alert-warning">@infoMessage</div>
+}
+
+<AuthorizeView Policy="RequireRecruiterOrAdmin">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2 class="h5 mb-0"><i class="bi bi-briefcase-fill me-1"></i>@T["Pos_Heading"]</h2>
+        <a class="btn btn-primary btn-sm" href="positions/create"><i class="bi bi-plus-lg me-1"></i>@T["Pos_Create"]</a>
+    </div>
+    <div class="toolbar p-2 px-3 mb-3 d-flex gap-2 align-items-center flex-wrap">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="selectAllPos"
+                checked="@IsAllSelected()" @onchange="ToggleAll" />
+            <label class="form-check-label small" for="selectAllPos">@T["Pos_SelectAll"]</label>
+        </div>
+        <div class="vr"></div>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="DuplicateAsync" disabled="@(selected.Count != 1 || isBusy)"><i class="bi bi-copy me-1"></i>@T["Pos_Duplicate"]</button>
+        <button class="btn btn-sm btn-outline-primary" @onclick="GoToEdit" disabled="@(selected.Count != 1)"><i class="bi bi-pencil me-1"></i>@T["Pos_Edit"]</button>
+        <button class="btn btn-sm btn-outline-danger" @onclick="AskDelete" disabled="@(selected.Count == 0)"><i class="bi bi-trash me-1"></i>@T["Pos_Delete"]</button>
+        <span class="ms-auto text-muted small">@T["Pos_Selected"]: <strong>@selected.Count</strong></span>
+    </div>
+
+    @if (confirmDelete)
+    {
+        <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2">
+            <span class="me-auto">@T["Pos_DeleteConfirm"]</span>
+            <button class="btn btn-sm btn-danger" @onclick="ConfirmDeleteAsync" disabled="@isBusy">@T["Pos_ConfirmYes"]</button>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="() => confirmDelete = false">@T["Pos_Cancel"]</button>
+        </div>
+    }
+</AuthorizeView>
+
+@if (isLoading)
+{
+    <p><em>@T["Pos_Loading"]</em></p>
+}
+else if (items.Count == 0)
+{
+    <p><em>@T["Pos_Empty"]</em></p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <AuthorizeView Policy="RequireRecruiterOrAdmin">
+                        <th scope="col" style="width: 2.5rem;">
+                            <input type="checkbox" class="form-check-input"
+                                checked="@IsAllSelected()" @onchange="ToggleAll" />
+                        </th>
+                    </AuthorizeView>
+                    <th scope="col">@T["Pos_ColTitle"]</th>
+                    <th scope="col">@T["Pos_FieldCompany"]</th>
+                    <th scope="col">@T["Pos_FieldLevel"]</th>
+                    <th scope="col">@T["Pos_ColVisibility"]</th>
+                    <th scope="col">@T["Pos_ColTags"]</th>
+                    <th scope="col" class="text-end">@T["Pos_ColAttrs"]</th>
+                    <th scope="col" class="text-end">@T["Pos_ColCvs"]</th>
+                    <th scope="col" class="text-end">@T["Pos_ColUpdated"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in items)
+                {
+                    <tr>
+                        <AuthorizeView Policy="RequireRecruiterOrAdmin">
+                            <td>
+                                <input type="checkbox" class="form-check-input"
+                                    checked="@selected.Contains(p.Id)"
+                                    @onchange="() => ToggleOne(p.Id)" />
+                            </td>
+                        </AuthorizeView>
+                        <td><a href="@($"positions/{p.Id}")" class="text-decoration-none fw-bold">@p.Title</a></td>
+                        <td class="text-truncate" style="max-width: 12rem;">@(p.Company ?? "—")</td>
+                        <td><span class="badge @LevelBadge(p.Level)">@(p.Level ?? "—")</span></td>
+                        <td>
+                            @if (p.IsPublic)
+                            {
+                                <span class="badge text-bg-success">@T["Pos_Public"]</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-warning">@T["Pos_Private"]</span>
+                            }
+                        </td>
+                        <td>
+                            @foreach (var tag in p.Tags.Take(5))
+                            {
+                                <span class="badge text-bg-light border me-1">@tag</span>
+                            }
+                        </td>
+                        <td class="text-end">@p.RequiredAttributesCount</td>
+                        <td class="text-end"><span class="badge bg-primary rounded-pill">@p.CvCount</span></td>
+                        <td class="text-end">@p.UpdatedAt.ToString("g")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? InitialQ { get; set; }
+
+    [SupplyParameterFromQuery(Name = "tag")]
+    public string? InitialTag { get; set; }
+
+    [SupplyParameterFromQuery(Name = "view")]
+    public string? InitialView { get; set; }
+
+    private List<PositionListItemDto> items = new();
+    private HashSet<int> selected = new();
+    private string searchPrefix = string.Empty;
+    private string companyFilter = string.Empty;
+    private string levelFilter = string.Empty;
+    private bool onlyPublic;
+    private bool isLoading = true;
+    private bool isBusy;
+    private bool confirmDelete;
+    private string? errorMessage;
+    private string? infoMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(InitialQ))
+        {
+            searchPrefix = InitialQ;
+        }
+        else if (!string.IsNullOrWhiteSpace(InitialTag))
+        {
+            searchPrefix = InitialTag;
+        }
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        infoMessage = null;
+        confirmDelete = false;
+
+        try
+        {
+            var result = await Sender.Send(new ListPositionsQuery(
+                TitlePrefix: null,
+                OnlyPublic: onlyPublic ? true : null,
+                Take: 200,
+                Skip: 0,
+                SearchText: string.IsNullOrWhiteSpace(searchPrefix) ? null : searchPrefix.Trim(),
+                Company: string.IsNullOrWhiteSpace(companyFilter) ? null : companyFilter.Trim(),
+                Level: string.IsNullOrWhiteSpace(levelFilter) ? null : levelFilter.Trim()));
+
+            if (result.IsSuccess)
+            {
+                items = result.Value;
+                selected.RemoveWhere(id => items.All(p => p.Id != id));
+            }
+            else
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Pos_Unexpected"]);
+            }
+        }
+        catch
+        {
+            errorMessage = T["Pos_Unexpected"];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task ClearFilters()
+    {
+        searchPrefix = string.Empty;
+        companyFilter = string.Empty;
+        levelFilter = string.Empty;
+        onlyPublic = false;
+        await LoadAsync();
+    }
+
+    private bool IsAllSelected() => items.Count > 0 && selected.Count == items.Count;
+
+    private void ToggleAll(ChangeEventArgs e)
+    {
+        var on = (bool?)e.Value == true;
+        selected = on ? items.Select(p => p.Id).ToHashSet() : new HashSet<int>();
+    }
+
+    private void ToggleOne(int id)
+    {
+        if (!selected.Add(id))
+        {
+            selected.Remove(id);
+        }
+    }
+
+    private void GoToEdit()
+    {
+        if (selected.Count == 1)
+        {
+            Navigation.NavigateTo($"positions/{selected.Single()}");
+        }
+        else
+        {
+            infoMessage = T["Pos_SelectOne"];
+        }
+    }
+
+    private static string LevelBadge(string? level) => level switch
+    {
+        "Junior" => "text-bg-success",
+        "Middle" => "text-bg-warning",
+        "Senior" => "text-bg-danger",
+        "C-level" => "text-bg-dark",
+        _ => "text-bg-secondary"
+    };
+
+    private async Task DuplicateAsync()
+    {
+        if (selected.Count != 1 || isBusy)
+        {
+            infoMessage = T["Pos_SelectOne"];
+            return;
+        }
+
+        isBusy = true;
+        errorMessage = null;
+        infoMessage = null;
+
+        try
+        {
+            var sourceId = selected.Single();
+            var result = await Sender.Send(new DuplicatePositionCommand(sourceId));
+
+            if (!result.IsSuccess)
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Pos_Unexpected"]);
+                return;
+            }
+
+            Navigation.NavigateTo($"positions/{result.Value.Id}");
+        }
+        catch
+        {
+            errorMessage = T["Pos_Unexpected"];
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private void AskDelete()
+    {
+        if (selected.Count == 0)
+        {
+            infoMessage = T["Pos_SelectAny"];
+            return;
+        }
+
+        infoMessage = null;
+        confirmDelete = true;
+    }
+
+    private async Task ConfirmDeleteAsync()
+    {
+        isBusy = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await Sender.Send(new DeletePositionsBulkCommand(selected.ToList()));
+            if (!result.IsSuccess)
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Pos_Unexpected"]);
+            }
+
+            confirmDelete = false;
+            selected.Clear();
+            await LoadAsync();
+        }
+        catch
+        {
+            errorMessage = T["Pos_Unexpected"];
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}

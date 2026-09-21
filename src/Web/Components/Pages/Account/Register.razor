@@ -12,7 +12,7 @@
 
 <div class="row justify-content-center mt-5">
     <div class="col-md-5">
-        <div class="card shadow">
+        <div class="card">
             <div class="card-body p-4">
                 <h3 class="mb-4 text-center">@T["Register_Heading"]</h3>
                 <EditForm Model="model" OnValidSubmit="HandleRegister">
@@ -77,7 +77,7 @@
 
         try
         {
-            var result = await Sender.Send(new RegisterUserRequest(
+            var result = await Sender.Send(new RegisterUserCommand(
                 FirstName: model.FirstName,
                 LastName: model.LastName,
                 Location: model.Location,
@@ -87,7 +87,7 @@
 
             if (result.IsSuccess)
             {
-                Navigation.NavigateTo("/", forceLoad: true);
+                Navigation.NavigateTo("/account/login", forceLoad: true);
             }
             else
             {

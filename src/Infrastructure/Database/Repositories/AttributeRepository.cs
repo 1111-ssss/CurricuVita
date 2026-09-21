@@ -32,4 +32,19 @@ public class AttributeRepository : BaseRepository<AttributeDefinition>, IAttribu
             return false;
         }
     }
+
+    public async Task<int> DeleteAttributesBulkAsync(
+        ICollection<int> ids,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (ids is null || ids.Count == 0)
+        {
+            return 0;
+        }
+
+        return await _context.AttributeDefinitions
+            .Where(a => ids.Contains(a.Id) && a.Category != "Me")
+            .ExecuteDeleteAsync(cancellationToken);
+    }
 }

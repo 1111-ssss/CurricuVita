@@ -28,4 +28,9 @@ public interface IPositionRepository : IRepositoryBase<Position>
         string? searchText = null,
         CancellationToken cancellationToken = default
     );
+
+    Task<int> DeletePositionsBulkAsync(
+        ICollection<int> ids,
+        CancellationToken cancellationToken = default
+    );
 }

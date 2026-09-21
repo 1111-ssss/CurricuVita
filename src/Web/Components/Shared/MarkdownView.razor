@@ -1,0 +1,15 @@
+@using Markdig
+<div class="markdown-body">@((MarkupString)Html)</div>
+
+@code {
+    [Parameter]
+    public string? Markdown { get; set; }
+
+    private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .Build();
+
+    private string Html => string.IsNullOrWhiteSpace(Markdown)
+        ? string.Empty
+        : Markdig.Markdown.ToHtml(Markdown, MarkdownPipeline);
+}

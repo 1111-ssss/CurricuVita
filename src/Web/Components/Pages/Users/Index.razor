@@ -1,0 +1,365 @@
+@page "/users"
+
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using Domain.Contracts.UserContracts
+@using Application.Features.Users.Admin
+
+@attribute [Authorize(Policy = "RequireAdmin")]
+
+@inject ISender Sender
+@inject AuthenticationStateProvider AuthState
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Admin_Title"]</PageTitle>
+
+<h1>@T["Admin_Heading"]</h1>
+<p class="lead text-body-secondary">@T["Admin_Lead"]</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="admin-search">@T["Admin_SearchLabel"]</label>
+                <input id="admin-search" class="form-control" @bind="search"
+                    @bind:event="oninput" @onkeyup="OnSearchKeyUp"
+                    placeholder="@T["Admin_SearchPlaceholder"]" />
+            </div>
+            <div class="col-12 col-md-6 d-flex gap-2">
+                <button class="btn btn-outline-primary flex-fill" @onclick="LoadAsync">@T["Admin_SearchButton"]</button>
+                <button class="btn btn-outline-secondary flex-fill" @onclick="ClearSearch">@T["Admin_ClearButton"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(infoMessage))
+{
+    <div class="alert alert-warning">@infoMessage</div>
+}
+
+<div class="toolbar p-2 px-3 mb-3 d-flex gap-2 align-items-center flex-wrap">
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="selectAllUsers"
+            checked="@IsAllSelected()" @onchange="ToggleAll" />
+        <label class="form-check-label small" for="selectAllUsers">@T["Admin_SelectAll"]</label>
+    </div>
+    <div class="vr"></div>
+    <button class="btn btn-sm btn-outline-warning" @onclick="BlockSelectedAsync" disabled="@(selected.Count == 0 || isBusy)"><i class="bi bi-lock-fill me-1"></i>@T["Admin_Block"]</button>
+    <button class="btn btn-sm btn-outline-success" @onclick="UnblockSelectedAsync" disabled="@(selected.Count == 0 || isBusy)"><i class="bi bi-unlock-fill me-1"></i>@T["Admin_Unblock"]</button>
+    <button class="btn btn-sm btn-outline-danger" @onclick="AskDelete" disabled="@(selected.Count == 0)"><i class="bi bi-trash me-1"></i>@T["Admin_Delete"]</button>
+    <div class="vr"></div>
+    <div class="form-check form-check-inline">
+        <input type="checkbox" class="form-check-input" id="roleCandidate" @bind="roleCandidate" />
+        <label class="form-check-label small" for="roleCandidate">@T["Admin_RoleCandidate"]</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input type="checkbox" class="form-check-input" id="roleRecruiter" @bind="roleRecruiter" />
+        <label class="form-check-label small" for="roleRecruiter">@T["Admin_RoleRecruiter"]</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input type="checkbox" class="form-check-input" id="roleAdmin" @bind="roleAdmin" />
+        <label class="form-check-label small" for="roleAdmin">@T["Admin_RoleAdmin"]</label>
+    </div>
+    <button class="btn btn-sm btn-outline-primary" @onclick="ApplyRolesAsync" disabled="@(selected.Count == 0 || isBusy)"><i class="bi bi-shield-check me-1"></i>@T["Admin_ApplyRoles"]</button>
+    <span class="ms-auto text-muted small">@T["Admin_Selected"]: <strong>@selected.Count</strong></span>
+</div>
+
+@if (confirmDelete)
+{
+    <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2">
+        <span class="me-auto">@T["Admin_DeleteConfirm"]</span>
+        <button class="btn btn-sm btn-danger" @onclick="ConfirmDeleteAsync" disabled="@isBusy">@T["Admin_ConfirmYes"]</button>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="() => confirmDelete = false">@T["Admin_Cancel"]</button>
+    </div>
+}
+
+@if (isLoading)
+{
+    <p><em>@T["Admin_Loading"]</em></p>
+}
+else if (items.Count == 0)
+{
+    <p><em>@T["Admin_Empty"]</em></p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width: 2.5rem;">
+                        <input type="checkbox" class="form-check-input"
+                            checked="@IsAllSelected()" @onchange="ToggleAll" />
+                    </th>
+                    <th scope="col">@T["Admin_ColEmail"]</th>
+                    <th scope="col">@T["Admin_ColName"]</th>
+                    <th scope="col">@T["Admin_ColRoles"]</th>
+                    <th scope="col">@T["Admin_ColStatus"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in items)
+                {
+                    <tr class="@(u.IsLockedOut ? "table-warning" : null)">
+                        <td>
+                            <input type="checkbox" class="form-check-input"
+                                checked="@selected.Contains(u.Id)"
+                                @onchange="() => ToggleOne(u.Id)" />
+                        </td>
+                        <td class="fw-bold">@u.Email</td>
+                        <td>@($"{u.FirstName} {u.LastName}".Trim())</td>
+                        <td>
+                            @foreach (var r in u.Roles)
+                            {
+                                <span class="badge text-bg-secondary me-1">@r</span>
+                            }
+                        </td>
+                        <td>
+                            @if (u.IsLockedOut)
+                            {
+                                <span class="badge text-bg-warning">@T["Admin_StatusBlocked"]</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-success">@T["Admin_StatusActive"]</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<UserAdminDto> items = new();
+    private HashSet<int> selected = new();
+    private string search = string.Empty;
+    private bool isLoading = true;
+    private bool isBusy;
+    private bool confirmDelete;
+    private string? errorMessage;
+    private string? infoMessage;
+    private bool roleCandidate = true;
+    private bool roleRecruiter;
+    private bool roleAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task<(int UserId, bool IsAdmin)> GetRequesterAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var idValue = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        _ = int.TryParse(idValue, out var userId);
+        return (userId, state.User.IsInRole(Domain.Constants.UserRoles.Administrator));
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        infoMessage = null;
+        confirmDelete = false;
+
+        try
+        {
+            var (userId, isAdmin) = await GetRequesterAsync();
+            var result = await Sender.Send(new ListUsersQuery(
+                userId, isAdmin,
+                string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+                Take: 200, Skip: 0));
+
+            if (result.IsSuccess)
+            {
+                items = result.Value;
+                selected.RemoveWhere(id => items.All(u => u.Id != id));
+            }
+            else
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Admin_Unexpected"]);
+            }
+        }
+        catch
+        {
+            errorMessage = T["Admin_Unexpected"];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task ClearSearch()
+    {
+        search = string.Empty;
+        await LoadAsync();
+    }
+
+    private bool IsAllSelected() => items.Count > 0 && selected.Count == items.Count;
+
+    private void ToggleAll(ChangeEventArgs e)
+    {
+        var on = (bool?)e.Value == true;
+        selected = on ? items.Select(u => u.Id).ToHashSet() : new HashSet<int>();
+    }
+
+    private void ToggleOne(int id)
+    {
+        if (!selected.Add(id))
+        {
+            selected.Remove(id);
+        }
+    }
+
+    private List<string> GetSelectedRoles()
+    {
+        var roles = new List<string>();
+        if (roleCandidate)
+        {
+            roles.Add(Domain.Constants.UserRoles.Candidate);
+        }
+        if (roleRecruiter)
+        {
+            roles.Add(Domain.Constants.UserRoles.Recruiter);
+        }
+        if (roleAdmin)
+        {
+            roles.Add(Domain.Constants.UserRoles.Administrator);
+        }
+        return roles;
+    }
+
+    private async Task BlockSelectedAsync()
+    {
+        await RunForSelectedAsync((id, req, admin) => Sender.Send(new BlockUserCommand(id, req, admin)));
+    }
+
+    private async Task UnblockSelectedAsync()
+    {
+        await RunForSelectedAsync((id, req, admin) => Sender.Send(new UnblockUserCommand(id, req, admin)));
+    }
+
+    private async Task RunForSelectedAsync(Func<int, int, bool, Task<Domain.ResultPattern.Result.Result>> action)
+    {
+        isBusy = true;
+        errorMessage = null;
+        infoMessage = null;
+
+        try
+        {
+            var (requester, isAdmin) = await GetRequesterAsync();
+            foreach (var id in selected.ToList())
+            {
+                var result = await action(id, requester, isAdmin);
+                if (!result.IsSuccess)
+                {
+                    errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Admin_Unexpected"]);
+                    break;
+                }
+            }
+
+            await LoadAsync();
+        }
+        catch
+        {
+            errorMessage = T["Admin_Unexpected"];
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task ApplyRolesAsync()
+    {
+        isBusy = true;
+        errorMessage = null;
+        infoMessage = null;
+
+        try
+        {
+            var roles = GetSelectedRoles();
+            var (requester, isAdmin) = await GetRequesterAsync();
+            foreach (var id in selected.ToList())
+            {
+                var result = await Sender.Send(new UpdateUserRolesCommand(id, roles, requester, isAdmin));
+                if (!result.IsSuccess)
+                {
+                    errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Admin_Unexpected"]);
+                    break;
+                }
+            }
+
+            await LoadAsync();
+        }
+        catch
+        {
+            errorMessage = T["Admin_Unexpected"];
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private void AskDelete()
+    {
+        if (selected.Count == 0)
+        {
+            return;
+        }
+
+        infoMessage = null;
+        confirmDelete = true;
+    }
+
+    private async Task ConfirmDeleteAsync()
+    {
+        isBusy = true;
+        errorMessage = null;
+
+        try
+        {
+            var (requester, isAdmin) = await GetRequesterAsync();
+            foreach (var id in selected.ToList())
+            {
+                var result = await Sender.Send(new DeleteUserCommand(id, requester, isAdmin));
+                if (!result.IsSuccess)
+                {
+                    errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Admin_Unexpected"]);
+                    break;
+                }
+            }
+
+            confirmDelete = false;
+            selected.Clear();
+            await LoadAsync();
+        }
+        catch
+        {
+            errorMessage = T["Admin_Unexpected"];
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}

@@ -1,3 +1,4 @@
+using Domain.Contracts.UserContracts;
 using Domain.Entities;
 using Domain.ResultPattern.Result;
 
@@ -30,6 +31,16 @@ public interface IIdentityService
     );
     Task Logout();
     Task<IList<string>> GetRoles(int userId);
+    Task<Result<List<UserAdminDto>>> ListUsersAsync(
+        string? search,
+        int take,
+        int skip,
+        CancellationToken cancellationToken = default
+    );
+    Task<Result> BlockUserAsync(int targetUserId, int requesterUserId);
+    Task<Result> UnblockUserAsync(int targetUserId, int requesterUserId);
+    Task<Result> DeleteUserAsync(int targetUserId, int requesterUserId);
+    Task<Result> UpdateUserRolesAsync(int targetUserId, List<string> roles, int requesterUserId);
     Task<Result<string>> GenerateEmailConfirmationToken(int userId);
     Task<Result> ConfirmEmail(int userId, string token);
 }
