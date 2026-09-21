@@ -1,31 +1,53 @@
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IStringLocalizer<SharedResource> T
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">@T["App_Name"]</a>
-    </div>
-</div>
-
-<input type="checkbox" title="@T["Nav_Toggle"]" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> @T["Nav_Home"]
+<nav class="main-nav-links d-flex flex-lg-row flex-column align-items-stretch align-items-lg-center gap-1 flex-lg-nowrap">
+    <NavLink class="nav-link px-1 px-xl-2 text-nowrap" href="" Match="NavLinkMatch.All">
+        <i class="bi bi-house-door-fill me-1"></i>@T["Nav_Home"]
+    </NavLink>
+    <NavLink class="nav-link px-1 px-xl-2 text-nowrap" href="attributes">
+        <i class="bi bi-list-nested me-1"></i>@T["Nav_Attributes"]
+    </NavLink>
+    <NavLink class="nav-link px-1 px-xl-2 text-nowrap" href="positions">
+        <i class="bi bi-briefcase-fill me-1"></i>@T["Nav_Positions"]
+    </NavLink>
+    <AuthorizeView Policy="RequireAdmin">
+        <Authorized>
+            <NavLink class="nav-link px-1 px-xl-2 text-nowrap" href="users">
+                <i class="bi bi-people-fill me-1"></i>@T["Nav_Users"]
             </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="account/login">
-                <span class="bi bi-box-arrow-in-right-nav-menu" aria-hidden="true"></span> @T["Nav_SignIn"]
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView>
+        <Authorized>
+            <NavLink class="nav-link px-1 px-xl-2 text-nowrap" href="profile">
+                <i class="bi bi-person-fill me-1"></i>@T["Nav_Profile"]
             </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="account/register">
-                <span class="bi bi-person-plus-fill-nav-menu" aria-hidden="true"></span> @T["Nav_SignUp"]
+        </Authorized>
+        <NotAuthorized>
+            <NavLink class="nav-link px-1 px-xl-2 text-nowrap" href="account/login?returnUrl=%2Fprofile">
+                <i class="bi bi-person-fill me-1"></i>@T["Nav_Profile"]
             </NavLink>
-        </div>
-    </nav>
-</div>
+        </NotAuthorized>
+    </AuthorizeView>
+    <AuthorizeView>
+        <Authorized>
+            <span class="nav-link px-1 px-xl-2 text-nowrap text-body-secondary">
+                <i class="bi bi-person-circle me-1"></i>@context.User.Identity?.Name
+            </span>
+            <form method="post" action="/api/auth/logout-form" class="d-inline">
+                <button type="submit" class="nav-link px-1 px-xl-2 btn btn-link text-decoration-none text-nowrap">
+                    <i class="bi bi-box-arrow-right me-1"></i>@T["Nav_SignOut"]
+                </button>
+            </form>
+        </Authorized>
+        <NotAuthorized>
+            <NavLink class="nav-link px-1 px-xl-2 text-nowrap" href="account/login">
+                <i class="bi bi-box-arrow-in-right me-1"></i>@T["Nav_SignIn"]
+            </NavLink>
+            <NavLink class="nav-link px-1 px-xl-2 text-nowrap" href="account/register">
+                <i class="bi bi-person-plus-fill me-1"></i>@T["Nav_SignUp"]
+            </NavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+</nav>
