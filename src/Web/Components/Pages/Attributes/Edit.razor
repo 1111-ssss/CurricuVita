@@ -1,0 +1,149 @@
+@page "/attributes/{Id:int}"
+
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Application.Features.Attributes.GetAttribute
+@using Application.Features.Attributes.UpdateAttribute
+@using Application.Features.Attributes.Categories
+
+@attribute [Authorize(Policy = "RequireRecruiterOrAdmin")]
+
+@inject ISender Sender
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Attr_EditTitle"]</PageTitle>
+
+<h1>@T["Attr_EditTitle"]</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+        @if (isConcurrencyConflict)
+        {
+            <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="ReloadAsync">@T["Attr_Reload"]</button>
+        }
+    </div>
+}
+
+@if (isLoading)
+{
+    <p><em>@T["Attr_Loading"]</em></p>
+}
+else if (model is not null)
+{
+    <div class="col-12 col-lg-8 col-xl-6">
+        <AttributeForm Model="model" Categories="categories" LockDataType="true"
+            IsSaving="isSaving" OnValidSubmit="HandleSubmit" />
+    </div>
+}
+
+<div class="mt-3">
+    <a href="attributes">@T["Attr_Back"]</a>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private AttributeFormModel? model;
+    private List<string> categories = new();
+    private int version;
+    private bool isLoading = true;
+    private bool isSaving;
+    private string? errorMessage;
+    private bool isConcurrencyConflict;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        isConcurrencyConflict = false;
+
+        try
+        {
+            var categoriesResult = await Sender.Send(new GetCategoriesQuery());
+            if (categoriesResult.IsSuccess)
+            {
+                categories = categoriesResult.Value;
+            }
+
+            var result = await Sender.Send(new GetAttributeQuery(Id));
+            if (result.IsSuccess)
+            {
+                var dto = result.Value;
+                version = dto.Version;
+                model = new AttributeFormModel
+                {
+                    Category = dto.Category,
+                    Name = dto.Name,
+                    Description = dto.Description,
+                    DataType = dto.DataType,
+                    OptionsText = string.Join(Environment.NewLine, dto.Options)
+                };
+            }
+            else
+            {
+                model = null;
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Attr_Unexpected"]);
+            }
+        }
+        catch
+        {
+            model = null;
+            errorMessage = T["Attr_Unexpected"];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (model is null)
+        {
+            return;
+        }
+
+        isSaving = true;
+        errorMessage = null;
+        isConcurrencyConflict = false;
+
+        try
+        {
+            var result = await Sender.Send(new UpdateAttributeCommand(
+                Id: Id,
+                Category: model.Category.Trim(),
+                Name: model.Name.Trim(),
+                Description: model.Description?.Trim() ?? string.Empty,
+                DataType: model.DataType,
+                Options: model.GetOptions(),
+                Version: version));
+
+            if (result.IsSuccess)
+            {
+                Navigation.NavigateTo("attributes");
+            }
+            else
+            {
+                isConcurrencyConflict = result.Error?.Code == "ConcurrencyConflict";
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Attr_Unexpected"]);
+            }
+        }
+        catch
+        {
+            errorMessage = T["Attr_Unexpected"];
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

@@ -1,0 +1,330 @@
+@page "/attributes"
+
+@using MediatR
+@using Domain.Contracts.AttributeContracts
+@using Application.Features.Attributes.ListAttributes
+@using Application.Features.Attributes.Categories
+@using Application.Features.Attributes.RecentlyUsed
+@using Application.Features.Attributes.DeleteAttribute
+
+@inject ISender Sender
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Attr_Title"]</PageTitle>
+
+<h1>@T["Attr_Heading"]</h1>
+<p class="lead text-body-secondary">@T["Attr_Lead"]</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label" for="attr-search">@T["Attr_SearchLabel"]</label>
+                <input id="attr-search" class="form-control" @bind="searchPrefix"
+                    @bind:event="oninput" @onkeyup="OnSearchKeyUp"
+                    placeholder="@T["Attr_SearchPlaceholder"]" />
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="attr-category">@T["Attr_CategoryLabel"]</label>
+                <select id="attr-category" class="form-select" value="@selectedCategory" @onchange="OnCategoryChanged">
+                    <option value="">@T["Attr_CategoryAll"]</option>
+                    @foreach (var c in categories)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-3 d-flex gap-2">
+                <button class="btn btn-outline-primary flex-fill" @onclick="LoadAsync">@T["Attr_SearchButton"]</button>
+                <button class="btn btn-outline-secondary flex-fill" @onclick="ClearFilters">@T["Attr_ClearButton"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(infoMessage))
+{
+    <div class="alert alert-warning">@infoMessage</div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="h5 mb-0"><i class="bi bi-list-nested me-1"></i>@T["Attr_Heading"]</h2>
+    <a class="btn btn-primary btn-sm" href="attributes/create"><i class="bi bi-plus-lg me-1"></i>@T["Attr_Create"]</a>
+</div>
+<div class="toolbar p-2 px-3 mb-3 d-flex gap-2 align-items-center flex-wrap">
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="selectAllAttr"
+            checked="@IsAllSelected()" @onchange="ToggleAll" />
+        <label class="form-check-label small" for="selectAllAttr">@T["Pos_SelectAll"]</label>
+    </div>
+    <div class="vr"></div>
+    <button class="btn btn-sm btn-outline-primary" @onclick="GoToEdit" disabled="@(selected.Count != 1)"><i class="bi bi-pencil me-1"></i>@T["Attr_Edit"]</button>
+    <button class="btn btn-sm btn-outline-danger" @onclick="AskDelete" disabled="@(selected.Count == 0)"><i class="bi bi-trash me-1"></i>@T["Attr_Delete"]</button>
+    <span class="ms-auto text-muted small">@T["Pos_Selected"]: <strong>@selected.Count</strong></span>
+</div>
+
+@if (confirmDelete)
+{
+    <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2">
+        <span class="me-auto">@T["Attr_DeleteConfirm"]</span>
+        <button class="btn btn-sm btn-danger" @onclick="ConfirmDeleteAsync" disabled="@isBusy">@T["Attr_ConfirmYes"]</button>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="() => confirmDelete = false">@T["Attr_Cancel"]</button>
+    </div>
+}
+
+@if (isLoading)
+{
+    <p><em>@T["Attr_Loading"]</em></p>
+}
+else if (items.Count == 0)
+{
+    <p><em>@T["Attr_Empty"]</em></p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width: 2.5rem;">
+                        <input type="checkbox" class="form-check-input"
+                            checked="@IsAllSelected()" @onchange="ToggleAll" />
+                    </th>
+                    <th scope="col">@T["Attr_ColName"]</th>
+                    <th scope="col">@T["Attr_ColCategory"]</th>
+                    <th scope="col">@T["Attr_ColType"]</th>
+                    <th scope="col">@T["Attr_ColDescription"]</th>
+                    <th scope="col" class="text-end">@T["Attr_ColUsage"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in items)
+                {
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="form-check-input"
+                                checked="@selected.Contains(a.Id)"
+                                @onchange="() => ToggleOne(a.Id)" />
+                        </td>
+                        <td><a href="@($"attributes/{a.Id}")" class="text-decoration-none fw-bold">@a.Name</a></td>
+                        <td><span class="badge text-bg-secondary">@a.Category</span></td>
+                        <td><span class="badge @TypeBadge(a.DataType)">@a.DataType</span></td>
+                        <td class="text-truncate" style="max-width: 24rem;" title="@a.Description">@a.Description</td>
+                        <td class="text-end">@a.UsageCount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<h2 class="h5 mt-4">@T["Attr_RecentHeading"]</h2>
+@if (recent.Count == 0)
+{
+    <p class="text-body-secondary"><em>@T["Attr_Empty"]</em></p>
+}
+else
+{
+    <div class="d-flex flex-wrap gap-2">
+        @foreach (var r in recent)
+        {
+            <button class="btn btn-sm btn-outline-secondary" @onclick="() => ApplyRecent(r.Name)" title="@r.Category">
+                @r.Name <span class="badge text-bg-light ms-1">@r.UsageCount</span>
+            </button>
+        }
+    </div>
+}
+
+@code {
+    private List<AttributeDto> items = new();
+    private List<string> categories = new();
+    private List<AttributeDto> recent = new();
+    private HashSet<int> selected = new();
+    private string searchPrefix = string.Empty;
+    private string selectedCategory = string.Empty;
+    private bool isLoading = true;
+    private bool isBusy;
+    private bool confirmDelete;
+    private string? errorMessage;
+    private string? infoMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategoriesAsync();
+        await LoadRecentAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadCategoriesAsync()
+    {
+        var result = await Sender.Send(new GetCategoriesQuery());
+        if (result.IsSuccess)
+        {
+            categories = result.Value;
+        }
+    }
+
+    private async Task LoadRecentAsync()
+    {
+        var result = await Sender.Send(new GetRecentlyUsedQuery(10));
+        if (result.IsSuccess)
+        {
+            recent = result.Value;
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        infoMessage = null;
+        confirmDelete = false;
+
+        try
+        {
+            var result = await Sender.Send(new ListAttributesQuery(
+                NamePrefix: string.IsNullOrWhiteSpace(searchPrefix) ? null : searchPrefix.Trim(),
+                Category: string.IsNullOrWhiteSpace(selectedCategory) ? null : selectedCategory,
+                Take: 200,
+                Skip: 0));
+
+            if (result.IsSuccess)
+            {
+                items = result.Value;
+                selected.RemoveWhere(id => items.All(a => a.Id != id));
+            }
+            else
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Attr_Unexpected"]);
+            }
+        }
+        catch
+        {
+            errorMessage = T["Attr_Unexpected"];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task OnCategoryChanged(ChangeEventArgs e)
+    {
+        selectedCategory = e.Value?.ToString() ?? string.Empty;
+        await LoadAsync();
+    }
+
+    private async Task ClearFilters()
+    {
+        searchPrefix = string.Empty;
+        selectedCategory = string.Empty;
+        await LoadAsync();
+    }
+
+    private async Task ApplyRecent(string name)
+    {
+        searchPrefix = name;
+        selectedCategory = string.Empty;
+        await LoadAsync();
+    }
+
+    private bool IsAllSelected() => items.Count > 0 && selected.Count == items.Count;
+
+    private static string TypeBadge(Domain.Enums.AttributeDataType type) => type switch
+    {
+        Domain.Enums.AttributeDataType.Numeric => "text-bg-info",
+        Domain.Enums.AttributeDataType.Image => "text-bg-warning",
+        Domain.Enums.AttributeDataType.Boolean => "text-bg-success",
+        Domain.Enums.AttributeDataType.Date => "text-bg-dark",
+        Domain.Enums.AttributeDataType.Period => "text-bg-dark",
+        Domain.Enums.AttributeDataType.Dropdown => "text-bg-primary",
+        Domain.Enums.AttributeDataType.Text => "text-bg-info",
+        _ => "text-bg-secondary"
+    };
+
+    private void ToggleAll(ChangeEventArgs e)
+    {
+        var on = (bool?)e.Value == true;
+        if (on)
+        {
+            selected = items.Select(a => a.Id).ToHashSet();
+        }
+        else
+        {
+            selected.Clear();
+        }
+    }
+
+    private void ToggleOne(int id)
+    {
+        if (!selected.Add(id))
+        {
+            selected.Remove(id);
+        }
+    }
+
+    private void GoToEdit()
+    {
+        if (selected.Count == 1)
+        {
+            Navigation.NavigateTo($"attributes/{selected.Single()}");
+        }
+        else
+        {
+            infoMessage = T["Attr_SelectOne"];
+        }
+    }
+
+    private void AskDelete()
+    {
+        if (selected.Count == 0)
+        {
+            infoMessage = T["Attr_SelectAny"];
+            return;
+        }
+
+        infoMessage = null;
+        confirmDelete = true;
+    }
+
+    private async Task ConfirmDeleteAsync()
+    {
+        isBusy = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await Sender.Send(new DeleteAttributesBulkCommand(selected.ToList()));
+            if (!result.IsSuccess)
+            {
+                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Attr_Unexpected"]);
+            }
+
+            confirmDelete = false;
+            selected.Clear();
+            await LoadRecentAsync();
+            await LoadAsync();
+        }
+        catch
+        {
+            errorMessage = T["Attr_Unexpected"];
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}
