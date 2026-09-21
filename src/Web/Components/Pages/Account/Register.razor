@@ -15,7 +15,7 @@
         <div class="card">
             <div class="card-body p-4">
                 <h3 class="mb-4 text-center">@T["Register_Heading"]</h3>
-                <EditForm Model="model" OnValidSubmit="HandleRegister">
+                <EditForm Model="model" FormName="register" OnValidSubmit="HandleRegister">
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger mb-3" />
 

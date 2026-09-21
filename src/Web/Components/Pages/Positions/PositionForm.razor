@@ -2,7 +2,7 @@
 @using Domain.Enums
 @inject IStringLocalizer<SharedResource> T
 
-<EditForm Model="Model" OnValidSubmit="OnValidSubmit">
+<EditForm Model="Model" FormName="@FormName" OnValidSubmit="OnValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary class="text-danger mb-3" />
 
@@ -163,6 +163,9 @@
 </EditForm>
 
 @code {
+    [Parameter]
+    public string FormName { get; set; } = "position-form";
+
     [Parameter, EditorRequired]
     public PositionFormModel Model { get; set; } = new();
 
