@@ -80,6 +80,7 @@ public class DatabaseSeeder : IDatabaseSeeder
             if (!await _context.AttributeDefinitions.AnyAsync(a => a.Name == attribute.Name))
             {
                 attribute.CreatedAt = DateTime.UtcNow;
+                attribute.UpdatedAt = attribute.CreatedAt;
                 attribute.Version = 1;
                 _context.AttributeDefinitions.Add(attribute);
             }

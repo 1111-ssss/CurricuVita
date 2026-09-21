@@ -14,6 +14,7 @@ public class AttributeDefinition : IEntity
     public decimal? MinValue { get; set; }
     public decimal? MaxValue { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
     public int Version { get; set; }
 
     public ICollection<PositionAttribute> PositionAttributes { get; set; } = new List<PositionAttribute>();

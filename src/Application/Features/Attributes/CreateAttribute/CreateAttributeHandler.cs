@@ -45,6 +45,7 @@ public class CreateAttributeHandler : IRequestHandler<CreateAttributeCommand, Re
             DataType = command.DataType,
             OptionsJson = AttributeOptionsHelper.SerializeOptions(normalizedOptions),
             CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
             Version = 1
         };
 

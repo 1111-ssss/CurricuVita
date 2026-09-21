@@ -1,9 +1,11 @@
+using Domain.Contracts.UserContracts;
 using Domain.Entities;
 using Domain.Interfaces.Identity;
 using Microsoft.AspNetCore.Identity;
 using Domain.ResultPattern.Result;
 using Domain.ResultPattern.Errors;
 using Infrastructure.Constants;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Domain.Options;
 
@@ -188,6 +190,159 @@ public class IdentityService : IIdentityService
         }
 
         return await _userManager.GetRolesAsync(user);
+    }
+
+    public async Task<Result<List<UserAdminDto>>> ListUsersAsync(
+        string? search,
+        int take,
+        int skip,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var query = _userManager.Users.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.Trim();
+            query = query.Where(u =>
+                (u.Email != null && u.Email.Contains(s)) ||
+                u.FirstName.Contains(s) ||
+                u.LastName.Contains(s));
+        }
+
+        var users = await query
+            .OrderBy(u => u.Id)
+            .Skip(skip)
+            .Take(Math.Clamp(take, 1, 200))
+            .ToListAsync(cancellationToken);
+
+        var result = new List<UserAdminDto>(users.Count);
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            result.Add(new UserAdminDto(
+                user.Id,
+                user.Email ?? user.UserName ?? string.Empty,
+                user.FirstName,
+                user.LastName,
+                roles.OrderBy(r => r).ToList(),
+                user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow,
+                user.LockoutEnd,
+                user.CreatedAt
+            ));
+        }
+
+        return Result<List<UserAdminDto>>.Success(result);
+    }
+
+    public async Task<Result> BlockUserAsync(int targetUserId, int requesterUserId)
+    {
+        if (targetUserId == requesterUserId)
+        {
+            return Result.Failure(Errors.UserAdminSelfNotAllowed);
+        }
+
+        var user = await _userManager.FindByIdAsync(targetUserId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(Errors.UserNotFound);
+        }
+
+        await _userManager.SetLockoutEnabledAsync(user, true);
+        var lockResult = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+        if (!lockResult.Succeeded)
+        {
+            return Result.Failure(Errors.UserAdminForbidden with { Message = GetErrorsText(lockResult) });
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> UnblockUserAsync(int targetUserId, int requesterUserId)
+    {
+        var user = await _userManager.FindByIdAsync(targetUserId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(Errors.UserNotFound);
+        }
+
+        var lockResult = await _userManager.SetLockoutEndDateAsync(user, null);
+        if (!lockResult.Succeeded)
+        {
+            return Result.Failure(Errors.UserAdminForbidden with { Message = GetErrorsText(lockResult) });
+        }
+
+        await _userManager.ResetAccessFailedCountAsync(user);
+        return Result.Success();
+    }
+
+    public async Task<Result> DeleteUserAsync(int targetUserId, int requesterUserId)
+    {
+        if (targetUserId == requesterUserId)
+        {
+            return Result.Failure(Errors.UserAdminSelfNotAllowed);
+        }
+
+        var user = await _userManager.FindByIdAsync(targetUserId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(Errors.UserNotFound);
+        }
+
+        var deleteResult = await _userManager.DeleteAsync(user);
+        if (!deleteResult.Succeeded)
+        {
+            return Result.Failure(Errors.UserAdminForbidden with { Message = GetErrorsText(deleteResult) });
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> UpdateUserRolesAsync(int targetUserId, List<string> roles, int requesterUserId)
+    {
+        var allowed = new[] { Domain.Constants.UserRoles.Candidate, Domain.Constants.UserRoles.Recruiter, Domain.Constants.UserRoles.Administrator };
+        var normalized = (roles ?? new List<string>()).Distinct().ToList();
+        if (normalized.Any(r => !allowed.Contains(r)))
+        {
+            return Result.Failure(Errors.UserRoleInvalid);
+        }
+
+        var user = await _userManager.FindByIdAsync(targetUserId.ToString());
+        if (user is null)
+        {
+            return Result.Failure(Errors.UserNotFound);
+        }
+
+        if (targetUserId == requesterUserId
+            && !normalized.Contains(Domain.Constants.UserRoles.Administrator)
+            && await _userManager.IsInRoleAsync(user, Domain.Constants.UserRoles.Administrator))
+        {
+            return Result.Failure(Errors.UserCannotRemoveOwnAdminRole);
+        }
+
+        var current = await _userManager.GetRolesAsync(user);
+        var toRemove = current.Except(normalized).ToList();
+        var toAdd = normalized.Except(current).ToList();
+
+        if (toRemove.Count > 0)
+        {
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, toRemove);
+            if (!removeResult.Succeeded)
+            {
+                return Result.Failure(Errors.UserAdminForbidden with { Message = GetErrorsText(removeResult) });
+            }
+        }
+
+        if (toAdd.Count > 0)
+        {
+            var addResult = await _userManager.AddToRolesAsync(user, toAdd);
+            if (!addResult.Succeeded)
+            {
+                return Result.Failure(Errors.UserAdminForbidden with { Message = GetErrorsText(addResult) });
+            }
+        }
+
+        return Result.Success();
     }
 
     public async Task<Result<string>> GenerateEmailConfirmationToken(int userId)

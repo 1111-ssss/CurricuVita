@@ -56,6 +56,7 @@ public class UpdateAttributeHandler : IRequestHandler<UpdateAttributeCommand, Re
         entity.Category = command.Category;
         entity.Name = command.Name;
         entity.Description = command.Description;
+        entity.UpdatedAt = DateTime.UtcNow;
         entity.OptionsJson = AttributeOptionsHelper.SerializeOptions(
             AttributeOptionsHelper.NormalizeOptions(entity.DataType, command.Options)
         );

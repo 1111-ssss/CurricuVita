@@ -42,4 +42,9 @@ public static class Errors
     public static Error DiscussionForbidden = new(HttpStatusCode.Forbidden, "DiscussionForbidden", "You cannot post in this discussion.");
     public static Error LikeForbidden = new(HttpStatusCode.Forbidden, "LikeForbidden", "Only recruiters can like CVs.");
     public static Error LikeNotFound = new(HttpStatusCode.NotFound, "LikeNotFound", "Like not found.");
+    public static Error PositionCvsForbidden = new(HttpStatusCode.Forbidden, "PositionCvsForbidden", "Only recruiters and administrators can view position CVs.");
+    public static Error UserAdminForbidden = new(HttpStatusCode.Forbidden, "UserAdminForbidden", "Only administrators can manage users.");
+    public static Error UserCannotRemoveOwnAdminRole = new(HttpStatusCode.BadRequest, "UserCannotRemoveOwnAdminRole", "You cannot remove the Administrator role from yourself.");
+    public static Error UserAdminSelfNotAllowed = new(HttpStatusCode.BadRequest, "UserAdminSelfNotAllowed", "This action cannot be performed on your own account.");
+    public static Error UserRoleInvalid = new(HttpStatusCode.BadRequest, "UserRoleInvalid", "Invalid role name.");
 }
