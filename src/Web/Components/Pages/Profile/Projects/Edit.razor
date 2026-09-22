@@ -3,9 +3,9 @@
 @using MediatR
 @using Application.Features.Projects.GetProject
 @using Application.Features.Projects.UpdateProject
-@using Application.Features.Tags.GetTagSuggestions
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Logging
 @using System.Security.Claims
 
 @attribute [Authorize]
@@ -14,6 +14,7 @@
 @inject AuthenticationStateProvider AuthState
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> T
+@inject ILogger<Edit> Logger
 
 <PageTitle>@T["Profile_ProjectEditTitle"]</PageTitle>
 
@@ -63,15 +64,8 @@ else
             </div>
 
             <div class="mb-3">
-                <label class="form-label" for="project-tags">@T["Profile_FieldTags"]</label>
-                <input id="project-tags" class="form-control" list="tag-suggestions"
-                    @bind="model.TagsText" @bind:event="oninput" @onkeyup="OnTagsKeyUp" />
-                <datalist id="tag-suggestions">
-                    @foreach (var s in suggestions)
-                    {
-                        <option value="@s"></option>
-                    }
-                </datalist>
+                <label class="form-label">@T["Profile_FieldTags"]</label>
+                <Web.Components.Shared.TagPicker @bind-SelectedTags="selectedTags" />
                 <div class="form-text">@T["Profile_TagsHint"]</div>
             </div>
 
@@ -99,7 +93,7 @@ else
 
     private int userId;
     private ProjectFormModel model = new();
-    private List<string> suggestions = new();
+    private List<string> selectedTags = new();
     private int version;
     private bool isLoading = true;
     private bool isSaving;
@@ -132,37 +126,29 @@ else
             {
                 var dto = result.Value;
                 version = dto.Version;
+                selectedTags = dto.Tags.ToList();
                 model = new ProjectFormModel
                 {
                     Title = dto.Title,
                     StartDate = dto.StartDate,
                     EndDate = dto.EndDate,
-                    DescriptionMarkdown = dto.DescriptionMarkdown,
-                    TagsText = string.Join(", ", dto.Tags)
+                    DescriptionMarkdown = dto.DescriptionMarkdown
                 };
             }
             else
             {
-                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Profile_Unexpected"]);
+                var localized = LocalizedError.Message(T, result.Error?.Code, T["Profile_Unexpected"]);
+                errorMessage = CombineWithServerError(localized, result.Error?.Message, result.Details);
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Load project {ProjectId} failed for user {UserId}", Id, userId);
             errorMessage = T["Profile_Unexpected"];
         }
         finally
         {
             isLoading = false;
-        }
-    }
-
-    private async Task OnTagsKeyUp(KeyboardEventArgs e)
-    {
-        var last = model.TagsText.Split(',').LastOrDefault()?.Trim() ?? string.Empty;
-        var result = await Sender.Send(new GetTagSuggestionsQuery(last, 10));
-        if (result.IsSuccess)
-        {
-            suggestions = result.Value;
         }
     }
 
@@ -181,7 +167,7 @@ else
                 model.StartDate,
                 model.EndDate,
                 model.DescriptionMarkdown ?? string.Empty,
-                SplitTags(model.TagsText),
+                selectedTags,
                 version));
 
             if (result.IsSuccess)
@@ -191,11 +177,13 @@ else
             else
             {
                 isConflict = result.Error?.Code == "ConcurrencyConflict";
-                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Profile_Unexpected"]);
+                var localized = LocalizedError.Message(T, result.Error?.Code, T["Profile_Unexpected"]);
+                errorMessage = CombineWithServerError(localized, result.Error?.Message, result.Details);
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Update project {ProjectId} failed for user {UserId}", Id, userId);
             errorMessage = T["Profile_Unexpected"];
         }
         finally
@@ -204,8 +192,21 @@ else
         }
     }
 
-    private static List<string> SplitTags(string text) =>
-        text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+    private static string CombineWithServerError(string localized, string? serverMessage, Dictionary<string, string>? details)
+    {
+        if (!string.IsNullOrWhiteSpace(serverMessage)
+            && !string.Equals(serverMessage.Trim(), localized.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            localized += $" {serverMessage.Trim()}";
+        }
+
+        if (details is { Count: > 0 })
+        {
+            localized += $" {string.Join("; ", details.Values)}";
+        }
+
+        return localized;
+    }
 
     public sealed class ProjectFormModel
     {
@@ -218,7 +219,5 @@ else
 
         [System.ComponentModel.DataAnnotations.MaxLength(20000)]
         public string DescriptionMarkdown { get; set; } = string.Empty;
-
-        public string TagsText { get; set; } = string.Empty;
     }
 }
