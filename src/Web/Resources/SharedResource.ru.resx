@@ -63,12 +63,14 @@
   <data name="Register_Location" xml:space="preserve"><value>Местоположение</value></data>
   <data name="Register_Email" xml:space="preserve"><value>Электронная почта</value></data>
   <data name="Register_Password" xml:space="preserve"><value>Пароль</value></data>
+  <data name="Register_ConfirmPassword" xml:space="preserve"><value>Подтвердите пароль</value></data>
   <data name="Register_Submit" xml:space="preserve"><value>Зарегистрироваться</value></data>
   <data name="Register_LoginLink" xml:space="preserve"><value>Уже есть аккаунт? Войти</value></data>
   <data name="Register_Failed" xml:space="preserve"><value>Не удалось зарегистрироваться.</value></data>
   <data name="Register_Unexpected" xml:space="preserve"><value>Что-то пошло не так. Попробуйте ещё раз.</value></data>
   <data name="Validation_Required" xml:space="preserve"><value>Обязательное поле.</value></data>
   <data name="Validation_Email" xml:space="preserve"><value>Введите корректный адрес электронной почты.</value></data>
+  <data name="Validation_PasswordMismatch" xml:space="preserve"><value>Пароли не совпадают.</value></data>
   <data name="Error_Title" xml:space="preserve"><value>Ошибка</value></data>
   <data name="Error_Heading" xml:space="preserve"><value>Ошибка.</value></data>
   <data name="Error_Subheading" xml:space="preserve"><value>При обработке запроса произошла ошибка.</value></data>
@@ -81,6 +83,11 @@
   <data name="NotFound_Heading" xml:space="preserve"><value>Страница не найдена</value></data>
   <data name="NotFound_Message" xml:space="preserve"><value>Нужная страница не найдена.</value></data>
   <data name="Errors_ExternalLoginError" xml:space="preserve"><value>Ошибка внешнего входа.</value></data>
+  <data name="Errors_EmailRequired" xml:space="preserve"><value>Ваш внешний аккаунт не предоставил адрес электронной почты.</value></data>
+  <data name="Errors_RegistrationFailed" xml:space="preserve"><value>Не удалось зарегистрироваться.</value></data>
+  <data name="External_Or" xml:space="preserve"><value>или</value></data>
+  <data name="External_Google" xml:space="preserve"><value>Продолжить через Google</value></data>
+  <data name="External_GitHub" xml:space="preserve"><value>Продолжить через GitHub</value></data>
   <data name="Errors_InvalidCredentials" xml:space="preserve"><value>Неверный email или пароль.</value></data>
   <data name="Errors_EmailNotConfirmed" xml:space="preserve"><value>Подтвердите email, прежде чем войти.</value></data>
   <data name="Errors_UserLockedOut" xml:space="preserve"><value>Аккаунт заблокирован. Попробуйте позже.</value></data>
@@ -100,6 +107,7 @@
   <data name="Errors_AttributeInvalidDescription" xml:space="preserve"><value>Описание — макс. 1000 символов.</value></data>
   <data name="Errors_ValidationFailed" xml:space="preserve"><value>Ошибка проверки данных.</value></data>
   <data name="Errors_EmailConfirmationLinkFailed" xml:space="preserve"><value>Не удалось подготовить ссылку для подтверждения email. Обратитесь в поддержку.</value></data>
+  <data name="Errors_EmailConfirmationFailed" xml:space="preserve"><value>Не удалось подтвердить email. Ссылка недействительна или истекла.</value></data>
   <data name="Nav_Attributes" xml:space="preserve"><value>Атрибуты</value></data>
   <data name="Attr_Title" xml:space="preserve"><value>Библиотека атрибутов</value></data>
   <data name="Attr_Heading" xml:space="preserve"><value>Библиотека атрибутов</value></data>
@@ -192,7 +200,10 @@
   <data name="Profile_FieldEnd" xml:space="preserve"><value>Дата окончания</value></data>
   <data name="Profile_FieldDescription" xml:space="preserve"><value>Описание (Markdown)</value></data>
   <data name="Profile_FieldTags" xml:space="preserve"><value>Теги</value></data>
-  <data name="Profile_TagsHint" xml:space="preserve"><value>Через запятую. Подсказки — из ранее введённых тегов.</value></data>
+  <data name="Profile_TagsHint" xml:space="preserve"><value>Выберите существующие теги или добавьте новые.</value></data>
+  <data name="Profile_TagsSearchPlaceholder" xml:space="preserve"><value>Найдите тег или введите новый…</value></data>
+  <data name="Profile_TagsAvailable" xml:space="preserve"><value>Существующие теги — нажмите, чтобы добавить:</value></data>
+  <data name="Profile_TagsAdd" xml:space="preserve"><value>Добавить</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Сохранить</value></data>
   <data name="Profile_Back" xml:space="preserve"><value>К профилю</value></data>
   <data name="Nav_Positions" xml:space="preserve"><value>Вакансии</value></data>
