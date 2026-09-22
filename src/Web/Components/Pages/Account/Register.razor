@@ -16,15 +16,7 @@
         <div class="card">
             <div class="card-body p-4">
                 <h3 class="mb-4 text-center">@T["Register_Heading"]</h3>
-<<<<<<< HEAD
                 <EditForm Model="model" FormName="register" OnValidSubmit="HandleRegister">
-=======
-                @if (!string.IsNullOrEmpty(QueryError))
-                {
-                    <div class="alert alert-danger">@QueryError</div>
-                }
-                <EditForm method="post" Model="model!" FormName="register" OnValidSubmit="HandleRegister" Enhance>
->>>>>>> feature/ui
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger mb-3" />
 
