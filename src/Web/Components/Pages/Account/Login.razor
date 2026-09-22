@@ -36,6 +36,21 @@
                     </div>
                 </form>
 
+                <div class="d-flex align-items-center my-3">
+                    <hr class="flex-grow-1" />
+                    <span class="px-2 text-muted">@T["External_Or"]</span>
+                    <hr class="flex-grow-1" />
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a class="btn btn-outline-danger" href="/api/external-login?provider=Google&returnUrl=@Uri.EscapeDataString(ReturnUrl)">
+                        <i class="bi bi-google me-2"></i>@T["External_Google"]
+                    </a>
+                    <a class="btn btn-outline-dark" href="/api/external-login?provider=GitHub&returnUrl=@Uri.EscapeDataString(ReturnUrl)">
+                        <i class="bi bi-github me-2"></i>@T["External_GitHub"]
+                    </a>
+                </div>
+
                 <div class="text-center mt-3">
                     <a href="/account/register">@T["Login_RegisterLink"]</a>
                 </div>

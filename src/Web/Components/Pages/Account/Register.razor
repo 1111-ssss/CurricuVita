@@ -3,6 +3,7 @@
 @using MediatR
 @using System.ComponentModel.DataAnnotations
 @using Application.Features.Identity.Register
+@using Web.Endpoints
 
 @inject ISender Sender
 @inject NavigationManager Navigation
@@ -15,33 +16,48 @@
         <div class="card">
             <div class="card-body p-4">
                 <h3 class="mb-4 text-center">@T["Register_Heading"]</h3>
+<<<<<<< HEAD
                 <EditForm Model="model" FormName="register" OnValidSubmit="HandleRegister">
+=======
+                @if (!string.IsNullOrEmpty(QueryError))
+                {
+                    <div class="alert alert-danger">@QueryError</div>
+                }
+                <EditForm method="post" Model="model!" FormName="register" OnValidSubmit="HandleRegister" Enhance>
+>>>>>>> feature/ui
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger mb-3" />
 
                     <div class="mb-3">
                         <label class="form-label">@T["Register_FirstName"]</label>
-                        <InputText @bind-Value="model.FirstName" class="form-control" />
+                        <InputText @bind-Value="model!.FirstName" class="form-control" />
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">@T["Register_LastName"]</label>
-                        <InputText @bind-Value="model.LastName" class="form-control" />
+                        <InputText @bind-Value="model!.LastName" class="form-control" />
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">@T["Register_Location"]</label>
-                        <InputText @bind-Value="model.Location" class="form-control" />
+                        <InputText @bind-Value="model!.Location" class="form-control" />
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">@T["Register_Email"]</label>
-                        <InputText @bind-Value="model.Email" class="form-control" />
+                        <InputText @bind-Value="model!.Email" class="form-control" />
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">@T["Register_Password"]</label>
-                        <InputText type="password" @bind-Value="model.Password" class="form-control" />
+                        <InputText type="password" @bind-Value="model!.Password" class="form-control" autocomplete="new-password" />
+                        <ValidationMessage For="() => model!.Password" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">@T["Register_ConfirmPassword"]</label>
+                        <InputText type="password" @bind-Value="model!.ConfirmPassword" class="form-control" autocomplete="new-password" />
+                        <ValidationMessage For="() => model!.ConfirmPassword" class="text-danger" />
                     </div>
 
                     <div class="d-grid">
@@ -51,6 +67,21 @@
                         </button>
                     </div>
                 </EditForm>
+
+                <div class="d-flex align-items-center my-3">
+                    <hr class="flex-grow-1" />
+                    <span class="px-2 text-muted">@T["External_Or"]</span>
+                    <hr class="flex-grow-1" />
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a class="btn btn-outline-danger" href="/api/external-login?provider=Google&returnUrl=@Uri.EscapeDataString(ReturnUrl)">
+                        <i class="bi bi-google me-2"></i>@T["External_Google"]
+                    </a>
+                    <a class="btn btn-outline-dark" href="/api/external-login?provider=GitHub&returnUrl=@Uri.EscapeDataString(ReturnUrl)">
+                        <i class="bi bi-github me-2"></i>@T["External_GitHub"]
+                    </a>
+                </div>
 
                 <div class="text-center mt-3">
                     <a href="/account/login">@T["Register_LoginLink"]</a>
@@ -66,23 +97,41 @@
 </div>
 
 @code {
-    private RegisterModel model = new();
+    [SupplyParameterFromForm(FormName = "register")]
+    private RegisterModel? model { get; set; }
+
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? ErrorCode { get; set; }
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrlQuery { get; set; }
+
+    private string ReturnUrl => AuthRedirectHelper.ToLocalUrl(ReturnUrlQuery);
+
+    private string? QueryError =>
+        string.IsNullOrEmpty(ErrorCode)
+            ? null
+            : LocalizedError.Message(T, ErrorCode, T["Register_Failed"]);
+
+    protected override void OnInitialized() => model ??= new();
+
     private bool isLoading;
     private string? errorMessage;
 
     private async Task HandleRegister()
     {
+        model ??= new();
         isLoading = true;
         errorMessage = null;
 
         try
         {
             var result = await Sender.Send(new RegisterUserCommand(
-                FirstName: model.FirstName,
-                LastName: model.LastName,
-                Location: model.Location,
-                Email: model.Email,
-                Password: model.Password
+                FirstName: model!.FirstName,
+                LastName: model!.LastName,
+                Location: model!.Location,
+                Email: model!.Email,
+                Password: model!.Password
             ));
 
             if (result.IsSuccess)
@@ -91,7 +140,8 @@
             }
             else
             {
-                errorMessage = LocalizedError.Message(T, result.Error?.Code, T["Register_Failed"]);
+                var localized = LocalizedError.Message(T, result.Error?.Code, T["Register_Failed"]);
+                errorMessage = CombineWithServerError(localized, result.Error?.Message, result.Details);
             }
         }
         catch (Exception)
@@ -102,6 +152,22 @@
         {
             isLoading = false;
         }
+    }
+
+    private static string CombineWithServerError(string localized, string? serverMessage, Dictionary<string, string>? details)
+    {
+        if (!string.IsNullOrWhiteSpace(serverMessage)
+            && !string.Equals(serverMessage.Trim(), localized.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            localized += $" {serverMessage.Trim()}";
+        }
+
+        if (details is { Count: > 0 })
+        {
+            localized += $" {string.Join("; ", details.Values)}";
+        }
+
+        return localized;
     }
 
     public class RegisterModel
@@ -121,5 +187,9 @@
 
         [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
         public string Password { get; set; } = "";
+
+        [Required(ErrorMessageResourceName = nameof(SharedResource.Validation_Required), ErrorMessageResourceType = typeof(SharedResource))]
+        [Compare(nameof(Password), ErrorMessageResourceName = nameof(SharedResource.Validation_PasswordMismatch), ErrorMessageResourceType = typeof(SharedResource))]
+        public string ConfirmPassword { get; set; } = "";
     }
 }
