@@ -39,6 +39,7 @@ public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, Result>
             email: request.Email,
             firstName: request.FirstName,
             lastName: request.LastName,
+            location: request.Location,
             password: request.Password,
             cancellationToken: cancellationToken
         );
@@ -70,7 +71,7 @@ public class RegisterUserHandler : IRequestHandler<RegisterUserCommand, Result>
             new ConfirmEmailTemplateModel
             {
                 FirstName = request.FirstName,
-                ConfirmEmail = confirmUrl
+                ConfirmUrl = confirmUrl
             }
         );
 

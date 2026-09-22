@@ -10,7 +10,7 @@ public sealed class TagSuggestionsSpec : Specification<Tag, string>
         if (!string.IsNullOrWhiteSpace(prefix))
         {
             var normalized = prefix.Trim().ToLower();
-            Query.Where(t => t.Name.ToLower().StartsWith(normalized));
+            Query.Where(t => t.Name.ToLower().Contains(normalized));
         }
 
         Query
