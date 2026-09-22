@@ -1,0 +1,190 @@
+@using MediatR
+@using Application.Features.Tags.GetTagSuggestions
+@using Microsoft.Extensions.Logging
+
+@inject ISender Sender
+@inject IStringLocalizer<SharedResource> T
+@inject ILogger<TagPicker> Logger
+
+@implements IDisposable
+
+<div>
+    @if (SelectedTags.Count > 0)
+    {
+        <div class="d-flex flex-wrap gap-1 mb-2">
+            @foreach (var tag in SelectedTags)
+            {
+                <span class="badge text-bg-primary d-inline-flex align-items-center gap-1 fw-normal" style="font-size: .9em;">
+                    @tag
+                    <button type="button" class="btn-close btn-close-white p-0" style="font-size: .65em;" @onclick="() => RemoveTag(tag)" aria-label="@tag"></button>
+                </span>
+            }
+        </div>
+    }
+
+    <input class="form-control" value="@searchText" @oninput="OnSearchInput"
+        placeholder="@T["Profile_TagsSearchPlaceholder"]"
+        @onkeydown="OnSearchKeyDown" />
+
+    @if (VisibleSuggestions.Count > 0)
+    {
+        <div class="form-text mt-1 mb-1">@T["Profile_TagsAvailable"]</div>
+        <div class="d-flex flex-wrap gap-1">
+            @foreach (var s in VisibleSuggestions)
+            {
+                <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => AddTag(s)">@s</button>
+            }
+        </div>
+    }
+
+    @if (CanAddNew)
+    {
+        <button type="button" class="btn btn-sm btn-outline-primary mt-1" @onclick="AddNewTag">
+            + @T["Profile_TagsAdd"] "@searchText.Trim()"
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<string> SelectedTags { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<List<string>> SelectedTagsChanged { get; set; }
+
+    [Parameter]
+    public int MaxTags { get; set; } = 20;
+
+    [Parameter]
+    public int MaxTagLength { get; set; } = 100;
+
+    [Parameter]
+    public int MaxVisibleSuggestions { get; set; } = 5;
+
+    private string searchText = string.Empty;
+    private List<string> options = new();
+    private CancellationTokenSource? suggestCts;
+    private bool disposed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshOptionsAsync(string.Empty, CancellationToken.None);
+    }
+
+    private List<string> VisibleSuggestions
+    {
+        get
+        {
+            var filter = searchText.Trim();
+            return options
+                .Where(o => !SelectedTags.Contains(o, StringComparer.OrdinalIgnoreCase))
+                .Where(o => filter.Length == 0 || o.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                .Take(MaxVisibleSuggestions)
+                .ToList();
+        }
+    }
+
+    private bool CanAddNew
+    {
+        get
+        {
+            var t = searchText.Trim();
+            return t.Length > 0
+                && t.Length <= MaxTagLength
+                && SelectedTags.Count < MaxTags
+                && !SelectedTags.Contains(t, StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        searchText = e.Value?.ToString() ?? string.Empty;
+
+        suggestCts?.Cancel();
+        suggestCts?.Dispose();
+        if (disposed)
+        {
+            return;
+        }
+
+        var cts = suggestCts = new CancellationTokenSource();
+        var snapshot = searchText;
+        try
+        {
+            await Task.Delay(250, cts.Token);
+            await RefreshOptionsAsync(snapshot, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private async Task OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            var first = VisibleSuggestions.FirstOrDefault();
+            if (first is not null)
+            {
+                await AddTag(first);
+            }
+            else if (CanAddNew)
+            {
+                await AddNewTag();
+            }
+        }
+    }
+
+    private async Task RefreshOptionsAsync(string prefix, CancellationToken token)
+    {
+        try
+        {
+            var result = await Sender.Send(new GetTagSuggestionsQuery(prefix, 50), token);
+            if (!token.IsCancellationRequested && result.IsSuccess)
+            {
+                options = result.Value;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Tag suggestions refresh failed");
+        }
+    }
+
+    private async Task AddTag(string tag)
+    {
+        var t = tag.Trim();
+        if (t.Length == 0
+            || t.Length > MaxTagLength
+            || SelectedTags.Count >= MaxTags
+            || SelectedTags.Contains(t, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        SelectedTags.Add(t);
+        await SelectedTagsChanged.InvokeAsync(SelectedTags);
+    }
+
+    private async Task AddNewTag()
+    {
+        await AddTag(searchText);
+        searchText = string.Empty;
+    }
+
+    private async Task RemoveTag(string tag)
+    {
+        SelectedTags.RemoveAll(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase));
+        await SelectedTagsChanged.InvokeAsync(SelectedTags);
+    }
+
+    public void Dispose()
+    {
+        disposed = true;
+        suggestCts?.Cancel();
+        suggestCts?.Dispose();
+    }
+}
