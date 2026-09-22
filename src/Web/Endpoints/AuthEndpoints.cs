@@ -97,6 +97,13 @@ public static class AuthEndpoints
     {
         var result = await mediator.Send(request, cancellationToken);
 
-        return result.ToMinimalApiResult();
+        if (result.IsSuccess)
+        {
+            return Results.Redirect(AuthRedirectHelper.HomePagePath);
+        }
+
+        return Results.Redirect(
+            AuthRedirectHelper.BuildLoginRedirect(result.Error?.Code ?? "EmailConfirmationFailed", returnUrl: null)
+        );
     }
 }

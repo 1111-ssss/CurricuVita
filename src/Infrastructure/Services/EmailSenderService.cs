@@ -37,7 +37,7 @@ public class EmailSenderService : IEmailSenderService
 
         await client.ConnectAsync(
             _options.CurrentValue.SmtpServer,
-            _options.CurrentValue.SmtpPort,
+            _options.CurrentValue.Port,
             SecureSocketOptions.Auto,
             cancellationToken
         );

@@ -108,6 +108,7 @@ public class IdentityService : IIdentityService
         string email,
         string firstName,
         string lastName,
+        string location,
         string password,
         CancellationToken cancellationToken = default
     )
@@ -119,7 +120,7 @@ public class IdentityService : IIdentityService
             EmailConfirmed = false,
             FirstName = firstName,
             LastName = lastName,
-            Location = string.Empty,
+            Location = location,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             Version = 1
@@ -128,7 +129,7 @@ public class IdentityService : IIdentityService
         var createResult = await _userManager.CreateAsync(user, password);
         if (!createResult.Succeeded)
         {
-            return Result.Failure(Errors.ExternalLoginError with { Message = GetErrorsText(createResult) });
+            return Result.Failure(Errors.RegistrationFailed with { Message = GetErrorsText(createResult) });
         }
 
         return Result<int>.Success(user.Id);
@@ -373,7 +374,12 @@ public class IdentityService : IIdentityService
             return Result.Failure(Errors.UserNotFound);
         }
 
-        await _userManager.ConfirmEmailAsync(user, token);
+        var confirmResult = await _userManager.ConfirmEmailAsync(user, token);
+        if (!confirmResult.Succeeded)
+        {
+            return Result.Failure(Errors.EmailConfirmationFailed with { Message = GetErrorsText(confirmResult) });
+        }
+
         return Result.Success();
     }
 
