@@ -6,6 +6,8 @@ namespace Domain.ResultPattern.Errors;
 public static class Errors
 {
     public static Error ExternalLoginError = new(HttpStatusCode.BadRequest, "ExternalLoginError", "External login error.");
+    public static Error EmailRequired = new(HttpStatusCode.BadRequest, "EmailRequired", "Email is required for external login.");
+    public static Error RegistrationFailed = new(HttpStatusCode.BadRequest, "RegistrationFailed", "Registration failed.");
     public static Error InvalidCredentials = new(HttpStatusCode.BadRequest, "InvalidCredentials", "Invalid credentials.");
     public static Error EmailNotConfirmed = new(HttpStatusCode.BadRequest, "EmailNotConfirmed", "Email not confirmed.");
     public static Error UserLockedOut = new(HttpStatusCode.BadRequest, "UserLockedOut", "User locked out.");
@@ -22,6 +24,7 @@ public static class Errors
     public static Error ConcurrencyConflict = new(HttpStatusCode.Conflict, "ConcurrencyConflict", "The record was modified by another user. Reload and try again.");
     public static Error ValidationFailed = new(HttpStatusCode.BadRequest, "ValidationFailed", "Validation failed.");
     public static Error EmailConfirmationLinkFailed = new(HttpStatusCode.BadRequest, "EmailConfirmationLinkFailed", "Could not prepare the email confirmation link.");
+    public static Error EmailConfirmationFailed = new(HttpStatusCode.BadRequest, "EmailConfirmationFailed", "Email confirmation failed.");
     public static Error PositionNotFound = new(HttpStatusCode.NotFound, "PositionNotFound", "Position not found.");
     public static Error PositionInvalidTitle = new(HttpStatusCode.BadRequest, "PositionInvalidTitle", "Title is required (max 250 chars).");
     public static Error PositionInvalidDescription = new(HttpStatusCode.BadRequest, "PositionInvalidDescription", "Description must be at most 5000 characters.");

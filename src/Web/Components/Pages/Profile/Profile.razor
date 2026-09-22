@@ -14,6 +14,7 @@
 @using Application.Features.Projects.DeleteProject
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Logging
 @using System.Security.Claims
 
 @attribute [Authorize]
@@ -23,6 +24,7 @@
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> T
 @inject IFileStorageService Files
+@inject ILogger<Profile> Logger
 
 @implements IDisposable
 
@@ -338,9 +340,12 @@ else
                         </tbody>
                     </table>
                 </div>
-                <div class="alert alert-secondary small mt-3 mb-0">
-                    <i class="bi bi-info-circle me-1"></i>@T["Cv_Hidden"]
-                </div>
+                @if (cvs.Any(c => c.IsHidden))
+                {
+                    <div class="alert alert-secondary small mt-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>@T["Cv_Hidden"]
+                    </div>
+                }
             }
         </div>
     </div>
@@ -428,16 +433,13 @@ else
 
         try
         {
-            var profileTask = Sender.Send(new GetProfileQuery(userId));
-            var attachableTask = Sender.Send(new GetAttachableAttributesQuery());
-            await Task.WhenAll(profileTask, attachableTask);
-
-            var profile = await profileTask;
-            var lib = await attachableTask;
+            var profile = await Sender.Send(new GetProfileQuery(userId));
+            var lib = await Sender.Send(new GetAttachableAttributesQuery());
 
             if (!profile.IsSuccess)
             {
-                errorMessage = LocalizedError.Message(T, profile.Error?.Code, T["Profile_Unexpected"]);
+                var localized = LocalizedError.Message(T, profile.Error?.Code, T["Profile_Unexpected"]);
+                errorMessage = CombineWithServerError(localized, profile.Error?.Message, profile.Details);
                 return;
             }
 
@@ -453,8 +455,9 @@ else
                 attachable = lib.Value;
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Profile reload failed for user {UserId}", userId);
             errorMessage = T["Profile_Unexpected"];
         }
         finally
@@ -497,7 +500,7 @@ else
 
                 if (!meResult.IsSuccess)
                 {
-                    HandleSaveError(meResult.Error?.Code);
+                    HandleSaveError(meResult.Error?.Code, meResult.Error?.Message, meResult.Details);
                     return;
                 }
 
@@ -526,7 +529,7 @@ else
 
                 if (!valuesResult.IsSuccess)
                 {
-                    HandleSaveError(valuesResult.Error?.Code);
+                    HandleSaveError(valuesResult.Error?.Code, valuesResult.Error?.Message, valuesResult.Details);
                     return;
                 }
 
@@ -546,8 +549,9 @@ else
 
             lastSavedAt = DateTime.UtcNow;
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Profile save failed for user {UserId}", userId);
             errorMessage = T["Profile_Unexpected"];
         }
         finally
@@ -557,7 +561,7 @@ else
         }
     }
 
-    private void HandleSaveError(string? code)
+    private void HandleSaveError(string? code, string? serverMessage = null, Dictionary<string, string>? details = null)
     {
         if (code == "ConcurrencyConflict")
         {
@@ -566,8 +570,25 @@ else
         }
         else
         {
-            errorMessage = LocalizedError.Message(T, code, T["Profile_Unexpected"]);
+            var localized = LocalizedError.Message(T, code, T["Profile_Unexpected"]);
+            errorMessage = CombineWithServerError(localized, serverMessage, details);
         }
+    }
+
+    private static string CombineWithServerError(string localized, string? serverMessage, Dictionary<string, string>? details)
+    {
+        if (!string.IsNullOrWhiteSpace(serverMessage)
+            && !string.Equals(serverMessage.Trim(), localized.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            localized += $" {serverMessage.Trim()}";
+        }
+
+        if (details is { Count: > 0 })
+        {
+            localized += $" {string.Join("; ", details.Values)}";
+        }
+
+        return localized;
     }
 
     private void MarkMeDirty() => me.IsDirty = true;

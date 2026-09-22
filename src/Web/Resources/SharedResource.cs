@@ -10,6 +10,7 @@ public class SharedResource
 
     public static string Validation_Required => Get(nameof(Validation_Required));
     public static string Validation_Email => Get(nameof(Validation_Email));
+    public static string Validation_PasswordMismatch => Get(nameof(Validation_PasswordMismatch));
 
     private static string Get(string name) =>
         ResourceManager.GetString(name, CultureInfo.CurrentUICulture) ?? name;
