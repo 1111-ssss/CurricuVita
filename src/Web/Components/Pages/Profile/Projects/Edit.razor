@@ -3,6 +3,7 @@
 @using MediatR
 @using Application.Features.Projects.GetProject
 @using Application.Features.Projects.UpdateProject
+@using Web.Components.Shared
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Logging
@@ -65,7 +66,7 @@ else
 
             <div class="mb-3">
                 <label class="form-label">@T["Profile_FieldTags"]</label>
-                <Web.Components.Shared.TagPicker @bind-SelectedTags="selectedTags" />
+                <TagPicker @bind-SelectedTags="selectedTags" />
                 <div class="form-text">@T["Profile_TagsHint"]</div>
             </div>
 
