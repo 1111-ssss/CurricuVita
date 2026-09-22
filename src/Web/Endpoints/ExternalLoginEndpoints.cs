@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Domain.Interfaces.Identity;
+using Domain.ResultPattern.Errors;
 using System.Security.Claims;
 using Domain.Entities;
 
@@ -8,6 +9,8 @@ namespace Web.Endpoints;
 
 public static class ExternalLoginEndpoints
 {
+    public static readonly string[] SupportedProviders = ["Google", "GitHub"];
+
     public static IEndpointRouteBuilder MapExternalLoginEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/external-login");
@@ -19,18 +22,17 @@ public static class ExternalLoginEndpoints
     }
 
     private static IResult ExternalLogin(
-        [FromQuery] string provider,
+        [FromQuery] string? provider,
         [FromQuery] string? returnUrl,
         [FromServices] SignInManager<User> signInManager)
     {
-        returnUrl ??= "/";
-        if (!Uri.IsWellFormedUriString(returnUrl, UriKind.Relative) &&
-            !returnUrl.StartsWith("/"))
+        if (string.IsNullOrWhiteSpace(provider))
         {
-            returnUrl = "/";
+            return Results.Redirect(AuthRedirectHelper.BuildLoginRedirect(Errors.ExternalLoginError.Code, returnUrl));
         }
 
-        var redirectUrl = $"/api/external-login/callback?returnUrl={Uri.EscapeDataString(returnUrl)}";
+        var safeReturnUrl = AuthRedirectHelper.ToLocalUrl(returnUrl);
+        var redirectUrl = $"/api/external-login/callback?returnUrl={Uri.EscapeDataString(safeReturnUrl)}";
 
         var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
         return Results.Challenge(properties, new[] { provider });
@@ -40,23 +42,19 @@ public static class ExternalLoginEndpoints
         [FromQuery] string? returnUrl,
         [FromServices] SignInManager<User> signInManager,
         [FromServices] IIdentityService identityService,
-        [FromServices] IConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        returnUrl ??= "/";
-
         var info = await signInManager.GetExternalLoginInfoAsync();
-        var loginPath = configuration.GetValue<string>("Identity:Cookie:LoginPath") ?? "/login";
 
         if (info is null)
         {
-            return Results.Redirect($"{loginPath}?error=external_login_failed");
+            return Results.Redirect(AuthRedirectHelper.BuildLoginRedirect(Errors.ExternalLoginError.Code, returnUrl));
         }
 
         var email = info.Principal.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrEmpty(email))
         {
-            return Results.Redirect($"{loginPath}?error=email_required");
+            return Results.Redirect(AuthRedirectHelper.BuildLoginRedirect(Errors.EmailRequired.Code, returnUrl));
         }
 
         var firstName = info.Principal.FindFirstValue(ClaimTypes.GivenName)
@@ -75,10 +73,10 @@ public static class ExternalLoginEndpoints
 
         if (!result.IsSuccess)
         {
-            var error = result.Error?.Message ?? "unknown";
-            return Results.Redirect($"{loginPath}?error={Uri.EscapeDataString(error)}");
+            var errorCode = result.Error?.Code ?? Errors.ExternalLoginError.Code;
+            return Results.Redirect(AuthRedirectHelper.BuildLoginRedirect(errorCode, returnUrl));
         }
 
-        return Results.Redirect(returnUrl);
+        return Results.Redirect(AuthRedirectHelper.ToLocalUrl(returnUrl));
     }
 }
