@@ -38,6 +38,7 @@ public static class IdentityConfigurationExtensions
 
                 options.ClientId = section["ClientId"]!;
                 options.ClientSecret = section["ClientSecret"]!;
+                options.CallbackPath = section.GetValue<string>("CallbackPath") ?? "/signin-google";
             })
             .AddGitHub(options =>
             {
@@ -45,6 +46,7 @@ public static class IdentityConfigurationExtensions
 
                 options.ClientId = section["ClientId"]!;
                 options.ClientSecret = section["ClientSecret"]!;
+                options.CallbackPath = section.GetValue<string>("CallbackPath") ?? "/signin-github";
                 options.Scope.Add("user:email");
             });
 

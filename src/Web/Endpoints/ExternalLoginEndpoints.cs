@@ -26,16 +26,18 @@ public static class ExternalLoginEndpoints
         [FromQuery] string? returnUrl,
         [FromServices] SignInManager<User> signInManager)
     {
-        if (string.IsNullOrWhiteSpace(provider))
+        if (string.IsNullOrWhiteSpace(provider)
+            || !SupportedProviders.Contains(provider, StringComparer.OrdinalIgnoreCase))
         {
             return Results.Redirect(AuthRedirectHelper.BuildLoginRedirect(Errors.ExternalLoginError.Code, returnUrl));
         }
 
+        var normalizedProvider = SupportedProviders.First(p => p.Equals(provider, StringComparison.OrdinalIgnoreCase));
         var safeReturnUrl = AuthRedirectHelper.ToLocalUrl(returnUrl);
         var redirectUrl = $"/api/external-login/callback?returnUrl={Uri.EscapeDataString(safeReturnUrl)}";
 
-        var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-        return Results.Challenge(properties, new[] { provider });
+        var properties = signInManager.ConfigureExternalAuthenticationProperties(normalizedProvider, redirectUrl);
+        return Results.Challenge(properties, new[] { normalizedProvider });
     }
 
     private static async Task<IResult> ExternalLoginCallback(
