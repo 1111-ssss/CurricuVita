@@ -7,7 +7,10 @@ public static class MiddlewareConfigurationExtensions
 {
     public static WebApplication UseMiddlewareConfiguration(this WebApplication app)
     {
-        app.UseForwardedHeaders();
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        });
 
         if (!app.Environment.IsDevelopment())
         {
