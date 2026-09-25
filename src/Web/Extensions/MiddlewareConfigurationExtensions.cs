@@ -24,6 +24,9 @@ public static class MiddlewareConfigurationExtensions
 
         app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
         app.UseHttpsRedirection();
+
+        app.UseStaticFiles();
+
         app.UseRequestLocalization();
         app.UseAuthentication();
         app.UseAuthorization();
