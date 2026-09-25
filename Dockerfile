@@ -9,7 +9,11 @@ RUN dotnet restore src/Web/Web.csproj
 
 COPY . .
 WORKDIR /src/src/Web
-RUN dotnet publish Web.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
+# NOTE: no --no-restore here. The restore above runs on csproj files only
+# (no .razor sources), so the Microsoft.AspNetCore.App.Internal.Assets pack
+# (blazor.web.js etc.) is missing from its graph. Publish must re-restore
+# with full sources present, otherwise _framework/* is silently omitted.
+RUN dotnet publish Web.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app

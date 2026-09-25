@@ -12,8 +12,8 @@
 *.userosscache
 *.sln.docstates
 
-bin/
-obj/
+**/bin/
+**/obj/
 out/
 publish/
 TestResults/
