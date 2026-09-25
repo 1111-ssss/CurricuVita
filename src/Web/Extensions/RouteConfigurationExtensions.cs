@@ -10,6 +10,7 @@ public static class RouteConfigurationExtensions
         app.MapAuthEndpoints();
         app.MapExternalLoginEndpoints();
         app.MapCultureEndpoints();
+        app.MapDiagEndpoints(); // TEMPORARY, remove after diagnosis
 
         return app;
     }
