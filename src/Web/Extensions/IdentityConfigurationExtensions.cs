@@ -29,6 +29,10 @@ public static class IdentityConfigurationExtensions
             options.AccessDeniedPath = section.GetValue<string>("AccessDeniedPath");
             options.ExpireTimeSpan = section.GetValue<TimeSpan>("ExpireTimeSpan");
             options.SlidingExpiration = section.GetValue<bool>("SlidingExpiration");
+
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         });
 
         services.AddAuthentication()

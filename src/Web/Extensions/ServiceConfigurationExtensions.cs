@@ -6,6 +6,7 @@ using FluentEmail.MailKitSmtp;
 using FluentValidation;
 using Infrastructure.Interfaces;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.DataProtection;
 using Web.BackgroundServices;
 using Web.Theming;
 
@@ -25,6 +26,13 @@ public static class ServiceConfigurationExtensions
         services.Configure<EmailSenderOptions>(
             configuration.GetSection(EmailSenderOptions.SectionName)
         );
+
+        services.AddAntiforgery(options =>
+        {
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        });
 
         // Razor Components
         services.AddRazorComponents()
