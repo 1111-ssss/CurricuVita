@@ -50,4 +50,8 @@ public static class Errors
     public static Error UserCannotRemoveOwnAdminRole = new(HttpStatusCode.BadRequest, "UserCannotRemoveOwnAdminRole", "You cannot remove the Administrator role from yourself.");
     public static Error UserAdminSelfNotAllowed = new(HttpStatusCode.BadRequest, "UserAdminSelfNotAllowed", "This action cannot be performed on your own account.");
     public static Error UserRoleInvalid = new(HttpStatusCode.BadRequest, "UserRoleInvalid", "Invalid role name.");
+    public static Error SalesforceNotConfigured = new(HttpStatusCode.BadRequest, "SalesforceNotConfigured", "Salesforce integration is not configured.");
+    public static Error SalesforceApiError = new(HttpStatusCode.BadGateway, "SalesforceApiError", "Salesforce API request failed.");
+    public static Error SupportTicketStoreError = new(HttpStatusCode.InternalServerError, "SupportTicketStoreError", "Support ticket store failed.");
+    public static Error SupportTicketRelayError = new(HttpStatusCode.BadGateway, "SupportTicketRelayError", "Support ticket relay failed.");
 }
