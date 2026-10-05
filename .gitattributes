@@ -1,0 +1,2 @@
+# Shell-скрипты всегда с LF: CRLF в shebang даёт "exec format error" в Docker.
+*.sh text eol=lf
