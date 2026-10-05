@@ -7,6 +7,7 @@ using Domain.ResultPattern.Errors;
 using Domain.ResultPattern.Result;
 using Domain.Specifications.Positions;
 using Domain.Specifications.Profile;
+using Domain.Helpers;
 using MediatR;
 
 namespace Application.Features.Positions.GetPositionAggregates;
@@ -58,25 +59,10 @@ public class GetPositionAggregatesHandler : IRequestHandler<GetPositionAggregate
         var values = await _values.ListAsync(
             new UserAttributeValuesByUsersSpec(userIds, attrIds), cancellationToken);
 
-        var aggregates = values
-            .Where(v => v.NumericValue.HasValue)
-            .GroupBy(v => v.AttributeDefinitionId)
-            .Select(g =>
-            {
-                var nums = g.Select(v => v.NumericValue!.Value).ToList();
-                var name = g.First().AttributeDefinition?.Name
-                    ?? numericAttrs.FirstOrDefault(a => a.AttributeDefinitionId == g.Key)?.AttributeDefinition?.Name
-                    ?? $"#{g.Key}";
-                return new PositionNumericAggregateDto(
-                    g.Key,
-                    name,
-                    nums.Count,
-                    (double)nums.Average(n => n),
-                    nums.Min(),
-                    nums.Max());
-            })
-            .OrderBy(a => a.Name)
-            .ToList();
+        var names = numericAttrs.ToDictionary(
+            a => a.AttributeDefinitionId,
+            a => a.AttributeDefinition?.Name ?? $"#{a.AttributeDefinitionId}");
+        var aggregates = PositionAggregation.Numeric(values, names);
 
         return Result<PositionAggregatesDto>.Success(
             new PositionAggregatesDto(request.PositionId, published.Count, aggregates)
