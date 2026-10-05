@@ -1,4 +1,4 @@
-FROM odoo:18
+FROM docker.io/library/odoo:18
 
 USER root
 COPY curricuvita_connector /mnt/extra-addons/curricuvita_connector

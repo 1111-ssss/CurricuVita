@@ -1,3 +1,4 @@
+#!/bin/sh
 set -eu
 
 DB_PORT="${DB_PORT:-5432}"
