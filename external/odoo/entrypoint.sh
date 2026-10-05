@@ -30,29 +30,47 @@ EOF
 export PGHOST="$DB_HOST" PGPORT="$DB_PORT" PGUSER="$DB_USER" PGPASSWORD="$DB_PASSWORD"
 
 db_state() {
-  python3 - "$@" <<'PYEOF'
-import sys
+  python3 - <<'PYEOF'
 import psycopg2
 
-dbname = sys.argv[1]
 try:
-    conn = psycopg2.connect(dbname=dbname, connect_timeout=5)
+    admin = psycopg2.connect(dbname="odoo", connect_timeout=5)
 except psycopg2.OperationalError:
     print("missing")
 else:
-    cur = conn.cursor()
+    cur = admin.cursor()
     cur.execute("SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='ir_module_module'")
-    print("ready" if cur.fetchone() else "empty")
-    conn.close()
+    if not cur.fetchone():
+        print("empty")
+    else:
+        cur.execute("SELECT state FROM ir_module_module WHERE name='base'")
+        row = cur.fetchone()
+        if not row or row[0] != "installed":
+            print("partial")
+        else:
+            cur.execute("SELECT state FROM ir_module_module WHERE name='curricuvita_connector'")
+            row = cur.fetchone()
+            print("ready" if row and row[0] == "installed" else "needs_connector")
+    admin.close()
 PYEOF
 }
 
-STATE="$(db_state odoo)"
+reset_db() {
+  python3 -c "import psycopg2; c=psycopg2.connect(dbname='postgres'); c.autocommit=True; cur=c.cursor(); cur.execute('DROP DATABASE IF EXISTS odoo'); cur.execute('CREATE DATABASE odoo'); c.close()"
+}
+
+STATE="$(db_state)"
 echo "Database odoo state: $STATE"
 
 if [ "$STATE" = "missing" ]; then
   echo "Creating database odoo..."
-  python3 -c "import psycopg2; c=psycopg2.connect(dbname='postgres'); c.autocommit=True; c.cursor().execute('CREATE DATABASE odoo')"
+  python3 -c "import psycopg2; c=psycopg2.connect(dbname='postgres'); c.autocommit=True; c.cursor().execute('CREATE DATABASE odoo'); c.close()"
+  STATE="empty"
+fi
+
+if [ "$STATE" = "partial" ]; then
+  echo "Half-initialized database detected, dropping for a clean reinstall..."
+  reset_db
   STATE="empty"
 fi
 
@@ -60,6 +78,10 @@ if [ "$STATE" = "empty" ]; then
   echo "Initializing database odoo (base + curricuvita_connector, no demo)..."
   odoo -c "$CONF" -d odoo -i base,curricuvita_connector --stop-after-init --without-demo=all
   echo "Initialization done."
+elif [ "$STATE" = "needs_connector" ]; then
+  echo "Installing curricuvita_connector..."
+  odoo -c "$CONF" -d odoo -i curricuvita_connector --stop-after-init --without-demo=all
+  echo "Module installed."
 fi
 
 exec odoo -c "$CONF" "$@"
