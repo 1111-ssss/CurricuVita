@@ -1,0 +1,172 @@
+@page "/profile/salesforce-export"
+
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using Application.Features.Integrations.ExportToSalesforce
+@using Application.Features.Profile.GetProfile
+@using Domain.Constants
+@using Domain.Contracts.SalesforceContracts
+
+@attribute [Authorize]
+
+@inject ISender Sender
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Profile_ExportSalesforce"]</PageTitle>
+
+<h1><i class="bi bi-cloud-arrow-up text-primary me-2"></i>@T["Profile_ExportSalesforce"]</h1>
+<p class="lead text-body-secondary">@T["Sf_Lead"]</p>
+
+@if (!string.IsNullOrEmpty(statusMessage))
+{
+    <div class="alert @(isSuccess ? "alert-success" : "alert-danger")">@statusMessage</div>
+}
+
+@if (isLoading)
+{
+    <p><em>@T["Sf_Loading"]</em></p>
+}
+else
+{
+    <div class="card section-card mb-4">
+        <div class="card-body">
+            <h2 class="h5 mb-3 text-primary">@T["Sf_ProfileData"]</h2>
+            <ul class="mb-0">
+                <li><strong>@T["Sf_Email"]:</strong> @email</li>
+                <li><strong>@T["Profile_FirstName"]:</strong> @firstName</li>
+                <li><strong>@T["Profile_LastName"]:</strong> @lastName</li>
+                <li><strong>@T["Profile_Location"]:</strong> @location</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card section-card mb-4">
+        <div class="card-body">
+            <h2 class="h5 mb-3 text-primary">@T["Sf_ExtraInfo"]</h2>
+            <div class="mb-3">
+                <label class="form-label" for="sf-company">@T["Sf_Company"]</label>
+                <input id="sf-company" class="form-control" @bind="company" maxlength="200" placeholder="Acme Inc." />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="sf-phone">@T["Sf_Phone"]</label>
+                <input id="sf-phone" class="form-control" @bind="phone" maxlength="50" placeholder="+375 ..." />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="sf-notes">@T["Sf_Notes"]</label>
+                <textarea id="sf-notes" class="form-control" rows="4" @bind="notes" maxlength="2000"></textarea>
+            </div>
+            <button class="btn btn-primary" @onclick="ExportAsync" disabled="@isExporting">
+                @if (isExporting)
+                {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                }
+                @T["Profile_ExportSalesforce"]
+            </button>
+            <a class="btn btn-outline-secondary ms-2" href="profile">@T["Sf_Back"]</a>
+            @if (exportResult is not null)
+            {
+                <div class="alert alert-success mt-3 mb-0">
+                    Account: <code>@exportResult.AccountId</code><br />
+                    Contact: <code>@exportResult.ContactId</code>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private int userId;
+    private bool isAdmin;
+    private bool isLoading = true;
+    private bool isExporting;
+    private bool isSuccess;
+    private string? statusMessage;
+
+    private string email = string.Empty;
+    private string firstName = string.Empty;
+    private string lastName = string.Empty;
+    private string location = string.Empty;
+
+    private string company = string.Empty;
+    private string? phone;
+    private string? notes;
+    private SalesforceExportResponse? exportResult;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var idValue = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(idValue, out userId))
+        {
+            Navigation.NavigateTo("/account/login?returnUrl=" + Uri.EscapeDataString("/profile/salesforce-export"), forceLoad: true);
+            return;
+        }
+        isAdmin = state.User.IsInRole(UserRoles.Administrator);
+
+        var profile = await Sender.Send(new GetProfileQuery(userId));
+        email = state.User.FindFirstValue(ClaimTypes.Email) ?? state.User.Identity?.Name ?? string.Empty;
+        if (profile.IsSuccess)
+        {
+            firstName = profile.Value.Me.FirstName;
+            lastName = profile.Value.Me.LastName;
+            location = profile.Value.Me.Location;
+            company = $"{firstName} {lastName}".Trim();
+        }
+        else
+        {
+            statusMessage = T["Sf_LoadFailed"];
+            isSuccess = false;
+        }
+
+        isLoading = false;
+    }
+
+    private async Task ExportAsync()
+    {
+        if (string.IsNullOrWhiteSpace(company))
+        {
+            statusMessage = T["Sf_CompanyRequired"];
+            isSuccess = false;
+            return;
+        }
+
+        isExporting = true;
+        statusMessage = null;
+        exportResult = null;
+
+        try
+        {
+            var result = await Sender.Send(new ExportToSalesforceCommand(
+                userId,
+                isAdmin,
+                company.Trim(),
+                string.IsNullOrWhiteSpace(phone) ? null : phone.Trim(),
+                string.IsNullOrWhiteSpace(notes) ? null : notes.Trim()));
+
+            if (result.IsSuccess)
+            {
+                exportResult = result.Value;
+                isSuccess = true;
+                statusMessage = T["Sf_Success"];
+            }
+            else
+            {
+                isSuccess = false;
+                statusMessage = string.Format(T["Sf_Failed"], result.Error?.Code, result.Error?.Message);
+            }
+        }
+        catch (Exception)
+        {
+            isSuccess = false;
+            statusMessage = T["Sf_Unexpected"];
+        }
+        finally
+        {
+            isExporting = false;
+        }
+    }
+}
