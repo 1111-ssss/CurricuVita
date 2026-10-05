@@ -27,4 +27,39 @@ proxy_mode = True
 workers = 0
 EOF
 
+export PGHOST="$DB_HOST" PGPORT="$DB_PORT" PGUSER="$DB_USER" PGPASSWORD="$DB_PASSWORD"
+
+db_state() {
+  python3 - "$@" <<'PYEOF'
+import sys
+import psycopg2
+
+dbname = sys.argv[1]
+try:
+    conn = psycopg2.connect(dbname=dbname, connect_timeout=5)
+except psycopg2.OperationalError:
+    print("missing")
+    return
+cur = conn.cursor()
+cur.execute("SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='ir_module_module'")
+print("ready" if cur.fetchone() else "empty")
+conn.close()
+PYEOF
+}
+
+STATE="$(db_state odoo)"
+echo "Database odoo state: $STATE"
+
+if [ "$STATE" = "missing" ]; then
+  echo "Creating database odoo..."
+  python3 -c "import psycopg2; c=psycopg2.connect(dbname='postgres'); c.autocommit=True; c.cursor().execute('CREATE DATABASE odoo')"
+  STATE="empty"
+fi
+
+if [ "$STATE" = "empty" ]; then
+  echo "Initializing database odoo (base + curricuvita_connector, no demo)..."
+  odoo -c "$CONF" -d odoo -i base,curricuvita_connector --stop-after-init --without-demo=all
+  echo "Initialization done."
+fi
+
 exec odoo -c "$CONF" "$@"
