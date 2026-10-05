@@ -5,12 +5,15 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      POSTGRES_DB: curricuvita
+      POSTGRES_PASSWORD: admin
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d curricuvita"]
       interval: 5s
       timeout: 3s
       retries: 10
