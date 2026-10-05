@@ -9,6 +9,7 @@ public static class RouteConfigurationExtensions
     {
         app.MapAuthEndpoints();
         app.MapExternalLoginEndpoints();
+        app.MapExternalIntegrationEndpoints();
         app.MapCultureEndpoints();
 
         return app;

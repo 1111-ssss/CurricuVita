@@ -26,6 +26,12 @@ public static class ServiceConfigurationExtensions
         services.Configure<EmailSenderOptions>(
             configuration.GetSection(EmailSenderOptions.SectionName)
         );
+        services.Configure<SalesforceOptions>(
+            configuration.GetSection(SalesforceOptions.SectionName)
+        );
+        services.Configure<SupportTicketOptions>(
+            configuration.GetSection(SupportTicketOptions.SectionName)
+        );
 
         services.AddAntiforgery(options =>
         {
@@ -70,6 +76,13 @@ public static class ServiceConfigurationExtensions
         // Services
         services.AddScoped<IEmailSenderService, EmailSenderService>();
         services.AddScoped<IFileStorageService, FileStorageService>();
+        services.AddScoped<IPositionApiTokenService, PositionApiTokenProtector>();
+        services.AddScoped<ISupportTicketSink, FileSupportTicketSink>();
+        services.AddHttpClient<SalesforceAuthClient>();
+        services.AddHttpClient<SalesforceSObjectClient>();
+        services.AddScoped<ISalesforceService, SalesforceService>();
+        services.AddHttpClient<PowerAutomateRelaySink>();
+        services.AddScoped<ISupportTicketSink>(sp => sp.GetRequiredService<PowerAutomateRelaySink>());
         services.AddSingleton<IEmailQueueService, EmailQueueService>();
         services.AddSingleton<IEmailTemplateRenderer, FluidEmailTemplateRenderer>();
 
