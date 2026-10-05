@@ -39,11 +39,11 @@ try:
     conn = psycopg2.connect(dbname=dbname, connect_timeout=5)
 except psycopg2.OperationalError:
     print("missing")
-    return
-cur = conn.cursor()
-cur.execute("SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='ir_module_module'")
-print("ready" if cur.fetchone() else "empty")
-conn.close()
+else:
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='ir_module_module'")
+    print("ready" if cur.fetchone() else "empty")
+    conn.close()
 PYEOF
 }
 
