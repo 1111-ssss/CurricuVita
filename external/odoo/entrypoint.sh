@@ -85,15 +85,30 @@ elif [ "$STATE" = "needs_connector" ]; then
 fi
 
 echo "Syncing admin password from env..."
-( timeout 300 odoo -c "$CONF" -d odoo shell --no-http <<'PYEOF' || echo "WARN: admin password sync failed, continuing with stored password"
+( timeout 180 python3 - <<'PYEOF' || echo "WARN: admin password sync failed, continuing with stored password"
 import os
-admin = env['res.users'].search([('login', '=', 'admin')], limit=1)
-if admin:
-    admin.write({'password': os.environ['ODOO_ADMIN_PASSWORD']})
-    env.cr.commit()
-    print('ADMIN_PASSWORD_SYNCED')
+import psycopg2
+
+try:
+    from odoo.addons.base.models.res_users import DEFAULT_CRYPT_CONTEXT as CRYPT
+except Exception:
+    from passlib.context import CryptContext
+    CRYPT = CryptContext(["pbkdf2_sha512"])
+
+conn = psycopg2.connect(dbname="odoo")
+conn.autocommit = True
+cur = conn.cursor()
+cur.execute("SELECT id FROM res_users WHERE login='admin'")
+row = cur.fetchone()
+if row:
+    cur.execute(
+        "UPDATE res_users SET password=%s WHERE id=%s",
+        (CRYPT.hash(os.environ["ODOO_ADMIN_PASSWORD"]), row[0]),
+    )
+    print("ADMIN_PASSWORD_SYNCED")
 else:
-    print('ADMIN_USER_NOT_FOUND')
+    print("ADMIN_USER_NOT_FOUND")
+conn.close()
 PYEOF
 )
 
