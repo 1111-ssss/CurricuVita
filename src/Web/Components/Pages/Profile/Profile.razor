@@ -59,9 +59,10 @@
     }
     else
     {
-        <span class="badge text-bg-success"><i class="bi bi-arrow-repeat me-1"></i>Autosave 7s</span>
+        <span class="badge text-bg-success"><i class="bi bi-arrow-repeat me-1"></i>@T["Profile_Autosave"]</span>
     }
     <button class="btn btn-sm btn-outline-primary ms-auto" @onclick="SaveNowAsync" disabled="@(isLoading || isSaving || isConflict || !hasUnsaved)"><i class="bi bi-check me-1"></i>@T["Profile_SaveNow"]</button>
+    <a class="btn btn-sm btn-outline-success" href="profile/salesforce-export"><i class="bi bi-cloud-arrow-up me-1"></i>@T["Profile_ExportSalesforce"]</a>
 </div>
 
 @if (isLoading)
