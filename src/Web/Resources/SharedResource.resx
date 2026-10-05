@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -417,4 +417,41 @@
   <data name="Admin_RoleCandidate" xml:space="preserve"><value>Candidate</value></data>
   <data name="Admin_RoleRecruiter" xml:space="preserve"><value>Recruiter</value></data>
   <data name="Admin_RoleAdmin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Pos_OdooHeading" xml:space="preserve"><value>Odoo integration</value></data>
+  <data name="Pos_OdooLead" xml:space="preserve"><value>Read-only import of aggregated results by API token. The token opens only this position.</value></data>
+  <data name="Pos_OdooShow" xml:space="preserve"><value>Show API token</value></data>
+  <data name="Pos_OdooGenerating" xml:space="preserve"><value>Generating...</value></data>
+  <data name="Pos_OdooToken" xml:space="preserve"><value>API token</value></data>
+  <data name="Pos_OdooUrl" xml:space="preserve"><value>Import URL</value></data>
+  <data name="Pos_DiscussionAppendOnly" xml:space="preserve"><value>Append-only: messages are added to the end only.</value></data>
+  <data name="Support_CreateTicket" xml:space="preserve"><value>Create support ticket</value></data>
+  <data name="Support_Lead" xml:space="preserve"><value>The ticket is saved as a JSON file and forwarded to the Power Automate flow.</value></data>
+  <data name="Support_FromPage" xml:space="preserve"><value>From page:</value></data>
+  <data name="Support_Summary" xml:space="preserve"><value>Summary</value></data>
+  <data name="Support_Priority" xml:space="preserve"><value>Priority</value></data>
+  <data name="Support_Priority_High" xml:space="preserve"><value>High</value></data>
+  <data name="Support_Priority_Average" xml:space="preserve"><value>Average</value></data>
+  <data name="Support_Priority_Low" xml:space="preserve"><value>Low</value></data>
+  <data name="Support_Submit" xml:space="preserve"><value>Submit ticket</value></data>
+  <data name="Support_Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Support_SummaryRequired" xml:space="preserve"><value>Summary is required.</value></data>
+  <data name="Support_Success" xml:space="preserve"><value>Ticket {0} uploaded. The Power Automate flow will notify the admins.</value></data>
+  <data name="Support_Failed" xml:space="preserve"><value>Failed ({0}): {1}</value></data>
+  <data name="Support_Unexpected" xml:space="preserve"><value>Unexpected error.</value></data>
+  <data name="Profile_Autosave" xml:space="preserve"><value>Autosave 7s</value></data>
+  <data name="Profile_ExportSalesforce" xml:space="preserve"><value>Export to Salesforce</value></data>
+  <data name="Sf_Lead" xml:space="preserve"><value>Creates an Account with a linked Contact in Salesforce via REST API.</value></data>
+  <data name="Sf_Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="Sf_ProfileData" xml:space="preserve"><value>Profile data (fields that cannot be deleted)</value></data>
+  <data name="Sf_Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Sf_ExtraInfo" xml:space="preserve"><value>Additional information for Salesforce</value></data>
+  <data name="Sf_Company" xml:space="preserve"><value>Company / Account Name *</value></data>
+  <data name="Sf_Phone" xml:space="preserve"><value>Phone</value></data>
+  <data name="Sf_Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="Sf_Back" xml:space="preserve"><value>Back to profile</value></data>
+  <data name="Sf_LoadFailed" xml:space="preserve"><value>Failed to load profile.</value></data>
+  <data name="Sf_CompanyRequired" xml:space="preserve"><value>Company is required.</value></data>
+  <data name="Sf_Success" xml:space="preserve"><value>Exported to Salesforce successfully. Check Accounts/Contacts in the org.</value></data>
+  <data name="Sf_Failed" xml:space="preserve"><value>Export failed ({0}): {1}</value></data>
+  <data name="Sf_Unexpected" xml:space="preserve"><value>Unexpected error during export.</value></data>
 </root>
