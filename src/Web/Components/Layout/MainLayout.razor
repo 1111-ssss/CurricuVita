@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @inject IStringLocalizer<SharedResource> T
+@inject NavigationManager Navigation
 
 <div class="page">
     <nav class="navbar navbar-expand-lg border-bottom sticky-top bg-body-tertiary">
@@ -33,10 +34,26 @@
             @Body
         </article>
     </main>
+
+    <footer class="border-top mt-auto py-3 bg-body-tertiary">
+        <div class="container-fluid d-flex flex-wrap gap-2 align-items-center">
+            <span class="text-body-secondary small me-auto">@T["App_Name"]</span>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="OpenSupport">
+                <i class="bi bi-question-circle me-1"></i>@T["Support_CreateTicket"]
+            </button>
+        </div>
+    </footer>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
     @T["ErrorUi_Unhandled"]
     <a href="." class="reload">@T["ErrorUi_Reload"]</a>
-    <span class="dismiss" title="@T["ErrorUi_Dismiss"]">🗙</span>
+    <span class="dismiss" title="@T["ErrorUi_Dismiss"]">x</span>
 </div>
+
+@code {
+    private void OpenSupport()
+    {
+        Navigation.NavigateTo("/support/new?returnUrl=" + Uri.EscapeDataString(Navigation.Uri));
+    }
+}
