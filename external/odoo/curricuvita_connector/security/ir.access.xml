@@ -1,75 +1,111 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <odoo noupdate="1">
     <record id="access_curricuvita_position_user" model="ir.model.access">
         <field name="name">curricuvita.position user</field>
-        <field name="model_id" ref="model_curricuvita_position"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="operation">r</field>
+        <field name="model_id" ref="model_curricuvita_position" />
+        <field name="group_id" ref="base.group_user" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="False" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_unlink" eval="False" />
     </record>
     <record id="access_curricuvita_position_manager" model="ir.model.access">
         <field name="name">curricuvita.position manager</field>
-        <field name="model_id" ref="model_curricuvita_position"/>
-        <field name="group_id" ref="base.group_system"/>
-        <field name="operation">crud</field>
+        <field name="model_id" ref="model_curricuvita_position" />
+        <field name="group_id" ref="base.group_system" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_create" eval="True" />
+        <field name="perm_unlink" eval="True" />
     </record>
     <record id="access_curricuvita_attribute_user" model="ir.model.access">
         <field name="name">curricuvita.attribute user</field>
-        <field name="model_id" ref="model_curricuvita_attribute"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="operation">r</field>
+        <field name="model_id" ref="model_curricuvita_attribute" />
+        <field name="group_id" ref="base.group_user" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="False" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_unlink" eval="False" />
     </record>
     <record id="access_curricuvita_attribute_manager" model="ir.model.access">
         <field name="name">curricuvita.attribute manager</field>
-        <field name="model_id" ref="model_curricuvita_attribute"/>
-        <field name="group_id" ref="base.group_system"/>
-        <field name="operation">crud</field>
+        <field name="model_id" ref="model_curricuvita_attribute" />
+        <field name="group_id" ref="base.group_system" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_create" eval="True" />
+        <field name="perm_unlink" eval="True" />
     </record>
     <record id="access_curricuvita_numeric_user" model="ir.model.access">
         <field name="name">curricuvita.numeric user</field>
-        <field name="model_id" ref="model_curricuvita_numeric"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="operation">r</field>
+        <field name="model_id" ref="model_curricuvita_numeric" />
+        <field name="group_id" ref="base.group_user" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="False" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_unlink" eval="False" />
     </record>
     <record id="access_curricuvita_numeric_manager" model="ir.model.access">
         <field name="name">curricuvita.numeric manager</field>
-        <field name="model_id" ref="model_curricuvita_numeric"/>
-        <field name="group_id" ref="base.group_system"/>
-        <field name="operation">crud</field>
+        <field name="model_id" ref="model_curricuvita_numeric" />
+        <field name="group_id" ref="base.group_system" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_create" eval="True" />
+        <field name="perm_unlink" eval="True" />
     </record>
     <record id="access_curricuvita_text_user" model="ir.model.access">
         <field name="name">curricuvita.text user</field>
-        <field name="model_id" ref="model_curricuvita_text"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="operation">r</field>
+        <field name="model_id" ref="model_curricuvita_text" />
+        <field name="group_id" ref="base.group_user" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="False" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_unlink" eval="False" />
     </record>
     <record id="access_curricuvita_text_manager" model="ir.model.access">
         <field name="name">curricuvita.text manager</field>
-        <field name="model_id" ref="model_curricuvita_text"/>
-        <field name="group_id" ref="base.group_system"/>
-        <field name="operation">crud</field>
+        <field name="model_id" ref="model_curricuvita_text" />
+        <field name="group_id" ref="base.group_system" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_create" eval="True" />
+        <field name="perm_unlink" eval="True" />
     </record>
     <record id="access_curricuvita_text_value_user" model="ir.model.access">
         <field name="name">curricuvita.text.value user</field>
-        <field name="model_id" ref="model_curricuvita_text_value"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="operation">r</field>
+        <field name="model_id" ref="model_curricuvita_text_value" />
+        <field name="group_id" ref="base.group_user" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="False" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_unlink" eval="False" />
     </record>
     <record id="access_curricuvita_text_value_manager" model="ir.model.access">
         <field name="name">curricuvita.text.value manager</field>
-        <field name="model_id" ref="model_curricuvita_text_value"/>
-        <field name="group_id" ref="base.group_system"/>
-        <field name="operation">crud</field>
+        <field name="model_id" ref="model_curricuvita_text_value" />
+        <field name="group_id" ref="base.group_system" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_create" eval="True" />
+        <field name="perm_unlink" eval="True" />
     </record>
     <record id="access_curricuvita_import_user" model="ir.model.access">
         <field name="name">curricuvita.import user</field>
-        <field name="model_id" ref="model_curricuvita_import"/>
-        <field name="group_id" ref="base.group_user"/>
-        <field name="operation">cr</field>
+        <field name="model_id" ref="model_curricuvita_import" />
+        <field name="group_id" ref="base.group_user" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="False" />
+        <field name="perm_create" eval="True" />
+        <field name="perm_unlink" eval="False" />
     </record>
     <record id="access_curricuvita_import_manager" model="ir.model.access">
         <field name="name">curricuvita.import manager</field>
-        <field name="model_id" ref="model_curricuvita_import"/>
-        <field name="group_id" ref="base.group_system"/>
-        <field name="operation">crud</field>
+        <field name="model_id" ref="model_curricuvita_import" />
+        <field name="group_id" ref="base.group_system" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_create" eval="True" />
+        <field name="perm_unlink" eval="True" />
     </record>
 </odoo>
