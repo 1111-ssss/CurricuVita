@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_curricuvita_import" model="ir.actions.act_window">
+        <field name="name">Import</field>
+        <field name="res_model">curricuvita.import</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_curricuvita_import_form" model="ir.ui.view">
+        <field name="name">curricuvita.import.form</field>
+        <field name="model">curricuvita.import</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="base_url" placeholder="https://app.example.com"/>
+                        <field name="api_token"/>
+                    </group>
+                    <footer>
+                        <button name="action_import" string="Import" type="object" class="btn-primary"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

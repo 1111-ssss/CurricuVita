@@ -1,0 +1,161 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workflowName": {
+      "type": "string",
+      "defaultValue": "curricuvita-support-tickets"
+    },
+    "gmailConnectionId": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "notificationConnectionId": {
+      "type": "string",
+      "defaultValue": ""
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2019-05-01",
+      "name": "[parameters('workflowName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "manual": {
+              "type": "Request",
+              "kind": "Http",
+              "inputs": {
+                "method": "POST",
+                "schema": {
+                  "properties": {
+                    "fileName": {
+                      "type": "string"
+                    },
+                    "ticket": {
+                      "properties": {
+                        "Admin e-mails": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "Created at": {
+                          "type": "string"
+                        },
+                        "Link": {
+                          "type": "string"
+                        },
+                        "Position": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "Priority": {
+                          "type": "string"
+                        },
+                        "Reported by": {
+                          "type": "string"
+                        },
+                        "Reporter roles": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "Summary": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "actions": {
+            "Compose_email_body": {
+              "type": "Compose",
+              "inputs": "New support ticket [@{triggerBody()?['ticket']?['Priority']}]\n\nReported by: @{triggerBody()?['ticket']?['Reported by']}\nPosition: @{triggerBody()?['ticket']?['Position']}\nLink: @{triggerBody()?['ticket']?['Link']}\n\nSummary:\n@{triggerBody()?['ticket']?['Summary']}\n\nFile: @{triggerBody()?['fileName']}",
+              "runAfter": {}
+            },
+            "Send_email_to_admins": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['gmail']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/Mail",
+                "body": {
+                  "To": "@{join(triggerBody()?['ticket']?['Admin e-mails'], ';')}",
+                  "Subject": "[@{triggerBody()?['ticket']?['Priority']}] Support ticket from @{triggerBody()?['ticket']?['Reported by']}",
+                  "Body": "@{outputs('Compose_email_body')}"
+                }
+              },
+              "runAfter": {
+                "Compose_email_body": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Send_push_notification": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['notification']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/pushnotifications",
+                "body": {
+                  "text": "[@{triggerBody()?['ticket']?['Priority']}] @{triggerBody()?['ticket']?['Summary']}"
+                }
+              },
+              "runAfter": {
+                "Send_email_to_admins": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "gmail": {
+                "connectionId": "[parameters('gmailConnectionId')]",
+                "connectionName": "gmail",
+                "id": "/providers/Microsoft.PowerApps/apis/gmail"
+              },
+              "notification": {
+                "connectionId": "[parameters('notificationConnectionId')]",
+                "connectionName": "notification",
+                "id": "/providers/Microsoft.PowerApps/apis/notification"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

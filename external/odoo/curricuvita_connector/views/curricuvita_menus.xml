@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_curricuvita_root" name="CurricuVita" web_icon="curricuvita_connector,static/description/icon.png"/>
+    <menuitem id="menu_curricuvita_positions" name="Positions" parent="menu_curricuvita_root" action="action_curricuvita_position"/>
+    <menuitem id="menu_curricuvita_import" name="Import" parent="menu_curricuvita_root" action="action_curricuvita_import"/>
+</odoo>
