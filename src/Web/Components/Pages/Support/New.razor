@@ -1,0 +1,138 @@
+@page "/support/new"
+
+@using MediatR
+@using System.Security.Claims
+@using Application.Features.Integrations.CreateSupportTicket
+@using Domain.Enums
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize]
+
+@inject ISender Sender
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> T
+
+<PageTitle>@T["Support_CreateTicket"]</PageTitle>
+
+<h1><i class="bi bi-question-circle text-primary me-2"></i>@T["Support_CreateTicket"]</h1>
+<p class="lead text-body-secondary">@T["Support_Lead"]</p>
+
+@if (!string.IsNullOrEmpty(statusMessage))
+{
+    <div class="alert @(isSuccess ? "alert-success" : "alert-danger")">@statusMessage</div>
+}
+
+<div class="card section-card mb-4">
+    <div class="card-body">
+        <div class="mb-3">
+            <span class="text-body-secondary small">@T["Support_FromPage"] </span>
+            <code>@originLink</code>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="ticket-summary">@T["Support_Summary"]</label>
+            <textarea id="ticket-summary" class="form-control" rows="4" @bind="summary" maxlength="2000"></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="ticket-priority">@T["Support_Priority"]</label>
+            <select id="ticket-priority" class="form-select" @bind="priority">
+                @foreach (var p in Enum.GetValues<SupportTicketPriority>())
+                {
+                    <option value="@p">@PriorityLabel(p)</option>
+                }
+            </select>
+        </div>
+        <button class="btn btn-primary" @onclick="SubmitAsync" disabled="@isSubmitting">
+            @if (isSubmitting)
+            {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            @T["Support_Submit"]
+        </button>
+        <a class="btn btn-outline-secondary ms-2" href="@backHref">@T["Support_Back"]</a>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    public int? PositionId { get; set; }
+
+    private string summary = string.Empty;
+    private SupportTicketPriority priority = SupportTicketPriority.Average;
+    private bool isSubmitting;
+    private bool isSuccess;
+    private string? statusMessage;
+    private string? resultFile;
+    private string originLink = string.Empty;
+    private string backHref = "/";
+
+    private string PriorityLabel(SupportTicketPriority p) => p switch
+    {
+        SupportTicketPriority.High => T["Support_Priority_High"],
+        SupportTicketPriority.Low => T["Support_Priority_Low"],
+        _ => T["Support_Priority_Average"]
+    };
+
+    protected override void OnInitialized()
+    {
+        originLink = ReturnUrl ?? Navigation.Uri;
+        backHref = ReturnUrl ?? "/";
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(summary))
+        {
+            statusMessage = T["Support_SummaryRequired"];
+            isSuccess = false;
+            return;
+        }
+
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var idValue = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(idValue, out var userId))
+        {
+            Navigation.NavigateTo("/account/login?returnUrl=" + Uri.EscapeDataString("/support/new"), forceLoad: true);
+            return;
+        }
+
+        isSubmitting = true;
+        statusMessage = null;
+
+        try
+        {
+            var result = await Sender.Send(new CreateSupportTicketCommand(
+                userId,
+                PositionId,
+                originLink,
+                summary.Trim(),
+                priority));
+
+            if (result.IsSuccess)
+            {
+                isSuccess = true;
+                resultFile = result.Value.FileName;
+                statusMessage = string.Format(T["Support_Success"], resultFile);
+                summary = string.Empty;
+            }
+            else
+            {
+                isSuccess = false;
+                statusMessage = string.Format(T["Support_Failed"], result.Error?.Code, result.Error?.Message);
+            }
+        }
+        catch
+        {
+            isSuccess = false;
+            statusMessage = T["Support_Unexpected"];
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}
