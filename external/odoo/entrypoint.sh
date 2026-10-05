@@ -84,4 +84,17 @@ elif [ "$STATE" = "needs_connector" ]; then
   echo "Module installed."
 fi
 
+echo "Syncing admin password from env..."
+( timeout 300 odoo -c "$CONF" -d odoo shell --no-http <<'PYEOF' || echo "WARN: admin password sync failed, continuing with stored password"
+import os
+admin = env['res.users'].search([('login', '=', 'admin')], limit=1)
+if admin:
+    admin.write({'password': os.environ['ODOO_ADMIN_PASSWORD']})
+    env.cr.commit()
+    print('ADMIN_PASSWORD_SYNCED')
+else:
+    print('ADMIN_USER_NOT_FOUND')
+PYEOF
+)
+
 exec odoo -c "$CONF" "$@"
