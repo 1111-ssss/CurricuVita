@@ -56,7 +56,7 @@ PYEOF
 }
 
 reset_db() {
-  python3 -c "import psycopg2; c=psycopg2.connect(dbname='postgres'); c.autocommit=True; cur=c.cursor(); cur.execute('DROP DATABASE IF EXISTS odoo'); cur.execute('CREATE DATABASE odoo'); c.close()"
+  python3 -c "import psycopg2; c=psycopg2.connect(dbname='postgres'); c.autocommit=True; cur=c.cursor(); cur.execute('DROP DATABASE IF EXISTS odoo WITH (FORCE)'); cur.execute('CREATE DATABASE odoo'); c.close()"
 }
 
 STATE="$(db_state)"
