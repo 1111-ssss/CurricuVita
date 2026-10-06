@@ -84,6 +84,45 @@ elif [ "$STATE" = "needs_connector" ]; then
   echo "Module installed."
 fi
 
+repair_assets() {
+  python3 - <<'PYEOF'
+import os
+import psycopg2
+
+try:
+    conn = psycopg2.connect(dbname="odoo", connect_timeout=5)
+except psycopg2.OperationalError:
+    print("ASSET_REPAIR_SKIPPED (no db)")
+else:
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='ir_attachment'")
+        if not cur.fetchone():
+            print("ASSET_REPAIR_SKIPPED (no tables)")
+        else:
+            cur.execute("SELECT value FROM ir_config_parameter WHERE key='ir_attachment.location'")
+            row = cur.fetchone()
+            if not row:
+                cur.execute("INSERT INTO ir_config_parameter (key, value) VALUES ('ir_attachment.location', 'db')")
+                print("ATTACHMENT_LOCATION_SET_DB")
+            elif row[0] != "db":
+                cur.execute("UPDATE ir_config_parameter SET value='db' WHERE key='ir_attachment.location'")
+                print("ATTACHMENT_LOCATION_SET_DB")
+            cur.execute("SELECT id, store_fname FROM ir_attachment WHERE url LIKE '/web/assets/%'")
+            deleted = 0
+            for att_id, fname in cur.fetchall():
+                if fname and not os.path.exists(fname):
+                    cur.execute("DELETE FROM ir_attachment WHERE id=%s", (att_id,))
+                    deleted += 1
+            conn.commit()
+            print(f"STALE_BUNDLES_DELETED={deleted}")
+    finally:
+        conn.close()
+PYEOF
+}
+
+repair_assets || echo "WARN: asset repair failed, continuing"
+
 echo "Syncing admin password from env..."
 ( timeout 180 python3 - <<'PYEOF' || echo "WARN: admin password sync failed, continuing with stored password"
 import os
